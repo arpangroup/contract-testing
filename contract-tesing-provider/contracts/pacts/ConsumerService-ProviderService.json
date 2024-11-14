@@ -1,0 +1,50 @@
+{
+  "consumer": {
+    "name": "ConsumerService"
+  },
+  "interactions": [
+    {
+      "description": "GET REQUEST",
+      "key": "db51a81f",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "test GET"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/pact"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "condition": true,
+            "name": "tom"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "transport": "https",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.5"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "ProviderService"
+  }
+}
