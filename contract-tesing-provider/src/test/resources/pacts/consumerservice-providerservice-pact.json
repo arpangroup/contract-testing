@@ -1,0 +1,33 @@
+{
+  "consumer": {
+    "name": "ConsumerService"
+  },
+  "provider": {
+    "name": "ProviderService"
+  },
+  "interactions": [
+    {
+      "description": "GET REQUEST",
+      "providerState": "user exists",
+      "request": {
+        "method": "GET",
+        "path": "/api/pact"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "condition": true,
+          "name": "tom"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

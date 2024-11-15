@@ -1,0 +1,51 @@
+{
+  "consumer": {
+    "name": "consumer-service"
+  },
+  "provider": {
+    "name": "provider-service"
+  },
+  "interactions": [
+    {
+      "description": "Get user details when user exists",
+      "providerState": "user exists",
+      "request": {
+        "method": "GET",
+        "path": "/user/1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "id": 1,
+          "name": "John Doe",
+          "email": "john.doe@example.com"
+        }
+      }
+    },
+    {
+      "description": "Get user details when user does not exist",
+      "providerState": "default state",
+      "request": {
+        "method": "GET",
+        "path": "/user/999"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "error": "User not found"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
