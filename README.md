@@ -17,3 +17,21 @@
 - [step 11: **pact broker**](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step11#step-11---using-a-pact-broker): Implement a broker workflow for integration with CI/CD
 
 _NOTE: Each step is tied to, and must be run within, a git branch, allowing you to progress through each stage incrementally. For example, to move to step 2 run the following: `git checkout step2`_
+
+
+## Requirements
+
+- JDK 17 or above
+- Maven 3+
+- Docker for step 11
+
+## Scenario
+
+There are two components in scope for our workshop.
+
+1. Product Catalog website. It provides an interface to query the Product service for product information.
+1. Product Service (Provider). Provides useful things about products, such as listing all products and getting the details of an individual product.
+
+## Start
+
+*Start at [step 1](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step1#step-1---simple-consumer-calling-provider)*
