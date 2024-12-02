@@ -3,6 +3,7 @@ package com.arpan.cdct_http_consumer.client;
 import com.arpan.cdct_http_consumer.model.DetailProductResponse;
 import com.arpan.cdct_http_consumer.model.ProductCreateRequest;
 import com.arpan.cdct_http_consumer.model.SimpleProductResponse;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class ProductServiceClient {
     private RestTemplate restTemplate;
 
     @Value("${serviceClients.products.baseUrl:http://localhost:8080/api/products}")
+    @Setter
     private String baseUrl;
 
     public List<SimpleProductResponse> getProducts() {
