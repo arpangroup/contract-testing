@@ -89,3 +89,43 @@ Accessing the URL for the app in the browser gives us a 500 error page as the do
 You will also see an exception in the Springboot console output.
 
 *Move on to [step 2](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step2#step-2---client-tested-but-integration-fails)*
+
+
+
+## Step 2 - Contract Test using Pact
+Unit tests are written and executed in isolation of any other services. When we write tests for code that talk to other services, they are built on trust that the contracts are upheld. There is no way to validate that the consumer and provider can communicate correctly.
+
+> An integration contract test is a test at the boundary of an external service verifying that it meets the contract expected by a consuming service — [Martin Fowler](https://martinfowler.com/bliki/IntegrationContractTest.html)
+
+### Pact Consumer Dependencies:
+````xml
+<!-- Pact Consumer Dependency -->
+<dependency>
+    <groupId>au.com.dius.pact.consumer</groupId>
+    <artifactId>junit5</artifactId>
+    <version>4.6.5</version>
+    <scope>test</scope>
+</dependency>
+````
+
+
+Let us add Pact to the project and write a consumer pact test for the GET /products/{id} endpoint.
+
+Provider states is an important concept of Pact that we need to introduce. These states help define the state that the provider should be in for specific interactions. For the moment, we will initially be testing the following states:
+- product with ID P101 exists
+- products exist
+
+The consumer can define the state of an interaction using the `given` property.
+
+ProductServiceClientPactTest.java
+````java
+@PactConsumerTest // Step1
+//@ExtendWith(PactConsumerTestExt.class) // Step1-alternative
+class StoreFrontConsumerPactTest {
+    @Autowired
+    private ProductServiceClient productServiceClient;
+    
+    
+}
+````
+
