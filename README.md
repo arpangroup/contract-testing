@@ -34,4 +34,6 @@ There are two components in scope for our workshop.
 
 ## Start
 
-*Start at [step 1](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step1#step-1---simple-consumer-calling-provider)*
+*Start at [step 1](https://github.com/arpangroup/contract-testing/tree/cdct-step1?tab=readme-ov-file#step-1---simple-consumer-calling-provider)*
+
+
