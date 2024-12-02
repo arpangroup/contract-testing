@@ -1,4 +1,4 @@
-package com.arpan.cdct_http_consumer.service;
+package com.arpan.cdct_http_consumer.client;
 
 import com.arpan.cdct_http_consumer.model.DetailProductResponse;
 import com.arpan.cdct_http_consumer.model.ProductCreateRequest;
