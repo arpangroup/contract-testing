@@ -32,6 +32,61 @@ There are two components in scope for our workshop.
 1. Product Catalog website (**Consumer**). It provides an interface to query the Product service for product information.
 1. Product Service (**Provider**). Provides useful things about products, such as listing all products and getting the details of an individual product.
 
-## Start
+## Step 1 - Simple Consumer calling Provider
+We need to first create an HTTP client to make the calls to our provider service:
 
-*Start at [step 1](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step1#step-1---simple-consumer-calling-provider)*
+Lets mock a providers API response, we are not consuming the whole response, instead we will consume a partial response
+````bash
+curl GET http://localhost:8080/api/products/P101 | python -m json.tool
+````
+````json
+{
+    "productId": "P101",
+    "productName": "Product1",
+    "price": 500,
+    "productType": "DEFAULT",
+    "version": "V-01",
+    "active": true
+}
+````
+Let's create a service which will call the actual endpoint.
+````java
+@Service
+public class ProductServiceClient {
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${serviceClients.products.baseUrl:http://localhost:8080/api/products}")
+    private String baseUrl;
+
+    public List<SimpleProductResponse> getProducts() {
+        SimpleProductResponse[] productList = restTemplate.getForObject(baseUrl, SimpleProductResponse[].class);
+        return Arrays.asList(productList);
+    }
+
+    public DetailProductResponse getProductById(String productId) {
+        return restTemplate.getForObject(baseUrl + "/" + productId, DetailProductResponse.class);
+    }
+    
+    public SImple getProductById(String productId) {
+        return restTemplate.getForObject(baseUrl + "/" + productId, DetailProductResponse.class);
+    }
+}
+````
+
+we need to build the app and install the dependencies. Run the following in the consumer sub-directory:
+
+````console
+cdct-http-consumer ❯ ./mvnw clean install
+````
+We can run the app with 
+````console
+java -jar target/cdct-http-consumer-0.0.1-SNAPSHOT.jar --server.port=9090
+or
+mvn spring-boot:run
+````
+Accessing the URL for the app in the browser gives us a 500 error page as the downstream service is not running.
+You will also see an exception in the Springboot console output.
+
+*Move on to [step 2](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step2#step-2---client-tested-but-integration-fails)*
+
