@@ -14,6 +14,7 @@ import com.arpan.cdct_http_consumer.exceptions.CustomException;
 import com.arpan.cdct_http_consumer.model.DetailProductResponse;
 import com.arpan.cdct_http_consumer.model.ProductCreateRequest;
 import com.arpan.cdct_http_consumer.model.SimpleProductResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -45,12 +46,20 @@ import static org.mockito.ArgumentMatchers.anyString;
 @PactTestFor(providerName = PROVIDER_NAME_PRODUCT_SERVICE,pactVersion = V4) /* Step3-class level alternative when there is only one consumer test */
 public class ProductServiceClientContractTest {
     private static final Logger log = LoggerFactory.getLogger(ProductServiceClientContractTest.class);
+    private RestTemplate restTemplate;
+
     static final String CONSUMER_NAME__WEB_BROWSER = "WebBrowserConsumer";
     static final String PROVIDER_NAME_PRODUCT_SERVICE = "ProductServiceProvider";
     static final Map<String, String> HEADERS = Map.of("Content-Type", "application/json");
     private final String REGEX_BEARER_TOKEN = "Bearer (19|20)[a-zA-Z0-9]+";
     private final String REGEX_PRODUCT_ID = "^P\\d+$";
     private final String SAMPLE_BEARER_TOKEN = "Bearer 20xA1vQ2k3y";
+
+    @BeforeEach
+    public void setup(MockServer mockServer) {
+        log.info("Mock Provider Endpoint: {}", mockServer.getUrl());
+        restTemplate = new RestTemplateBuilder().rootUri(mockServer.getUrl()).build();
+    }
 
     @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)  // Step2
     public V4Pact getAllProducts(PactDslWithProvider builder) {
@@ -100,7 +109,6 @@ public class ProductServiceClientContractTest {
     @Test
     @PactTestFor(pactMethod = "getAllProducts", pactVersion = V4) // Step3: either on Test class, or on the Test method
     void testGetAllProducts__whenProductsExists(MockServer mockServer) {
-        System.out.println("Mock Provider Endpoint: " + mockServer.getUrl());
         // Step1.1: or define expectedJson like:
         List<SimpleProductResponse> expectedProducts = List.of(
                 new SimpleProductResponse("P101", "Product1", 500),
@@ -125,7 +133,6 @@ public class ProductServiceClientContractTest {
         // validate ResponseBody
          assertThat(actualProduct).usingRecursiveComparison().isEqualTo(expectedProducts);*/
 
-        RestTemplate restTemplate = new RestTemplateBuilder().rootUri(mockServer.getUrl()).build();
         List<SimpleProductResponse> actualProduct = new ProductServiceClient(restTemplate).getAllProducts();
         assertThat(actualProduct).hasSize(2);
         assertThat(actualProduct.getFirst()).isEqualTo(expectedProducts.getFirst());
@@ -149,10 +156,7 @@ public class ProductServiceClientContractTest {
     @Test
     @PactTestFor(pactMethod = "noProductsExists", pactVersion = V4)
     void testGetAllProducts__whenNoProductsExists(MockServer mockServer) {
-        System.out.println("Mock Provider Endpoint: " + mockServer.getUrl());
-
         //ResponseEntity<SimpleProductResponse[]> productResponse = new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class);
-        RestTemplate restTemplate = new RestTemplateBuilder().rootUri(mockServer.getUrl()).build();
         List<SimpleProductResponse> actualProduct = new ProductServiceClient(restTemplate).getAllProducts();
 
         assertEquals(Collections.emptyList(), actualProduct);
@@ -185,7 +189,6 @@ public class ProductServiceClientContractTest {
     @Test
     @PactTestFor(pactMethod = "getProductDetailsById", pactVersion = V4)
     void testGetProductDetailsById__whenProductWithId_P101_Exists(MockServer mockServer) {
-        RestTemplate restTemplate = new RestTemplateBuilder().rootUri(mockServer.getUrl()).build();
         DetailProductResponse expectedProduct = new ProductServiceClient(restTemplate).getProductById("P101");
 
         DetailProductResponse actualProduct = new DetailProductResponse("P101", "Product1", 500, "ELECTRONICS", "1.0", true);
@@ -213,9 +216,6 @@ public class ProductServiceClientContractTest {
     @Test
     @PactTestFor(pactMethod = "productDetailsNotExist", pactVersion = V4)
     void testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer mockServer) {
-        RestTemplate restTemplate = new RestTemplateBuilder().rootUri(mockServer.getUrl()).build();
-        ProductServiceClient productServiceClient = new ProductServiceClient(restTemplate);
-
         HttpClientErrorException e = assertThrows(
                 HttpClientErrorException.class,
                 () -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products/P101", DetailProductResponse.class)
@@ -260,7 +260,6 @@ public class ProductServiceClientContractTest {
         //HttpEntity<Object> requestEntity = new HttpEntity<>(productCreateRequest, headers);
 
         //ResponseEntity<SimpleProductResponse> actualProductCreateResponse = new RestTemplate().postForEntity(mockServer.getUrl() + "/api/products", productCreateRequest, SimpleProductResponse.class);
-        RestTemplate restTemplate = new RestTemplateBuilder().rootUri(mockServer.getUrl()).build();
         SimpleProductResponse actualProductCreateResponse = new ProductServiceClient(restTemplate).createNewProduct(productCreateRequest);
 
 
@@ -292,8 +291,6 @@ public class ProductServiceClientContractTest {
     @Test
     @PactTestFor(pactMethod = "allProductsNoAuthToken", pactVersion = V4)
     void testGetAllProducts__whenNoAuth(MockServer mockServer) {
-        System.out.println("Mock Provider Endpoint: " + mockServer.getUrl());
-        RestTemplate restTemplate = new RestTemplateBuilder().rootUri(mockServer.getUrl()).build();
 
         HttpClientErrorException e = assertThrows(
                 HttpClientErrorException.class,
