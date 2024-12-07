@@ -311,4 +311,33 @@ public class ProductServiceClientContractTest {
 
 }
 ````
+These tests starts a mock server on a random port that acts as our provider service. To get this to work we update the URL in the ProductServiceClient to point to the mock server that Pact provides for the test.
+
+Running this test will create a pact file which we can use to validate our assumptions on the provider side, and have conversation around.
+
+````console
+cdct-http-consumer ❯ ./mvnw verify
+
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+
+<<< Omitted >>>
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  11.449 s
+[INFO] Finished at: 2024-12-08T02:34:33+05:30
+[INFO] ------------------------------------------------------------------------
+````
+A pact file should have been generated in `cdct-http-consumer/target/pacts/ProductCatalogue-ProductService.json`
+
+
+*Move on to [step 3](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step2#step-2---client-tested-but-integration-fails)*
 
