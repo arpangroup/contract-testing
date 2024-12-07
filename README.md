@@ -345,11 +345,31 @@ A pact file should have been generated in `cdct-http-consumer/target/pacts/WebBr
 ## Step 3 - Verify the provider
 We will need to copy the Pact contract file that was produced from the consumer test into the Provider module. This will help us verify that the provider can meet the requirements as set out in the contract.
 
-Copy the contract located in `cdct-http-consumer/target/pacts/ProductCatalogue-ProductService.json` to `cdct-http-provider/pacts/WebBrowserConsumer-ProductServiceProvider.json`.
+Copy the contract located in `cdct-http-consumer/target/pacts/ProductCatalogue-ProductService.json` to `cdct-http-provider/src/test/resources/pacts/WebBrowserConsumer-ProductServiceProvider.json`.
 
+### Step 3.1. Pact Consumer Dependencies:
+````xml
+<!-- Pact Provider Dependency -->
+<dependency>
+    <groupId>au.com.dius.pact.provider</groupId>
+    <artifactId>junit5</artifactId>
+    <version>4.6.5</version>
+    <scope>test</scope>
+</dependency>
+````
+
+
+### Step 3.2. Provider Contract Test
 Now let's make a start on writing a Pact test to validate the consumer contract:
 
-In `cdct-http-provider/src/test/java/io/pact/workshop/product_service/PactVerificationTest.java`:
+In `cdct-http-provider/src/test/java/io/pact/workshop/product_service/ProductServiceProviderContractTest.java`:
+
 
 ````java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Provider("ProductService")
+@PactFolder("src/test/resources/pacts")
+@IgnoreMissingStateChange
+public class ProductServiceProviderContractTest {
+}
 ````
