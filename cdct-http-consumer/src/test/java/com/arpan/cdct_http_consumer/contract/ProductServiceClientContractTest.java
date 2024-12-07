@@ -156,7 +156,7 @@ public class ProductServiceClientContractTest {
     @Test
     @PactTestFor(pactMethod = "noProductsExists", pactVersion = V4)
     void testGetAllProducts__whenNoProductsExists(MockServer mockServer) {
-        //ResponseEntity<SimpleProductResponse[]> productResponse = new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class);
+        /*ResponseEntity<SimpleProductResponse[]> productResponse = new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class);*/
         List<SimpleProductResponse> actualProduct = new ProductServiceClient(restTemplate).getAllProducts();
 
         assertEquals(Collections.emptyList(), actualProduct);
@@ -227,7 +227,7 @@ public class ProductServiceClientContractTest {
     @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
     public V4Pact createProduct(PactDslWithProvider builder) {
         return builder
-                .given("create new product exists")
+                .given("create new product")
                 .uponReceiving("create new product with productName and price")
                     .method("POST")
                     .path("/api/products")

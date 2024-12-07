@@ -97,7 +97,7 @@ Unit tests are written and executed in isolation of any other services. When we 
 
 > An integration contract test is a test at the boundary of an external service verifying that it meets the contract expected by a consuming service — [Martin Fowler](https://martinfowler.com/bliki/IntegrationContractTest.html)
 
-### Pact Consumer Dependencies:
+### Step 2.1. Pact Consumer Dependencies:
 ````xml
 <!-- Pact Consumer Dependency -->
 <dependency>
@@ -112,20 +112,203 @@ Unit tests are written and executed in isolation of any other services. When we 
 Let us add Pact to the project and write a consumer pact test for the GET /products/{id} endpoint.
 
 Provider states is an important concept of Pact that we need to introduce. These states help define the state that the provider should be in for specific interactions. For the moment, we will initially be testing the following states:
+- products exists
+- no product exists
 - product with ID P101 exists
-- products exist
+- product with ID P101 does not exists
+- create new product
+
 
 The consumer can define the state of an interaction using the `given` property.
 
 ProductServiceClientPactTest.java
 ````java
-@PactConsumerTest // Step1
-//@ExtendWith(PactConsumerTestExt.class) // Step1-alternative
-class StoreFrontConsumerPactTest {
-    @Autowired
-    private ProductServiceClient productServiceClient;
-    
-    
+@PactConsumerTest /* Step1 or, Step1-alternative ====> @ExtendWith(PactConsumerTestExt.class) */
+@PactTestFor(providerName = PROVIDER_NAME_PRODUCT_SERVICE,pactVersion = V4) /* Step3-class level alternative when there is only one consumer test */
+public class ProductServiceClientContractTest {
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceClientContractTest.class);
+    private RestTemplate restTemplate;
+
+    static final String CONSUMER_NAME__WEB_BROWSER = "WebBrowserConsumer";
+    static final String PROVIDER_NAME_PRODUCT_SERVICE = "ProductServiceProvider";
+    static final Map<String, String> HEADERS = Map.of("Content-Type", "application/json");
+    private final String REGEX_BEARER_TOKEN = "Bearer (19|20)[a-zA-Z0-9]+";
+    private final String REGEX_PRODUCT_ID = "^P\\d+$";
+    private final String SAMPLE_BEARER_TOKEN = "Bearer 20xA1vQ2k3y";
+
+    @BeforeEach
+    public void setup(MockServer mockServer) {
+        log.info("Mock Provider Endpoint: {}", mockServer.getUrl());
+        restTemplate = new RestTemplateBuilder().rootUri(mockServer.getUrl()).build();
+    }
+
+    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)  // Step2
+    public V4Pact getAllProducts(PactDslWithProvider builder) {
+        // Define the expected response body using PactDslJsonBody
+        PactDslJsonBody jsonBody = new PactDslJsonBody()
+                .stringType("studentName", "John Doe")
+                .stringType("studentId", "S12345")
+                .integerType("age", 20);
+
+        // Build the Pact interaction
+        return builder
+            .given("products exists") // State
+                .uponReceiving("get all products")
+                .method("GET")
+                .path("/api/products")
+            .willRespondWith()
+                .status(200)
+                .headers(HEADERS)
+                .body(LambdaDsl.newJsonArrayMinLike(2, array ->
+                    array.object(object -> {
+                        object.stringType("productId", "P101");
+                        object.stringType("productName", "Product1");
+                        object.numberType("price", 500);
+                    })
+                ).build())
+            .toPact(V4Pact.class);
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "getAllProducts", pactVersion = V4) // Step3: either on Test class, or on the Test method
+    void testGetAllProducts__whenProductsExists(MockServer mockServer) {
+        // Step1.1: or define expectedJson like:
+        List<SimpleProductResponse> expectedProducts = List.of(
+                new SimpleProductResponse("P101", "Product1", 500),
+                new SimpleProductResponse("P102", "Product2", 600)
+        );
+
+        // Step2: define the actualJson response & validate
+        List<SimpleProductResponse> actualProduct = new ProductServiceClient(restTemplate).getAllProducts();
+        assertThat(actualProduct).hasSize(2);
+        assertThat(actualProduct.getFirst()).isEqualTo(expectedProducts.getFirst());
+    }
+
+    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+    public V4Pact noProductsExists(PactDslWithProvider builder) {
+        return builder
+            .given("no product exists")
+                .uponReceiving("get all products")
+                .method("GET")
+                .path("/api/products")
+            .willRespondWith()
+                .status(200)
+                .headers(HEADERS)
+                .body("[]")
+            .toPact(V4Pact.class);
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "noProductsExists", pactVersion = V4)
+    void testGetAllProducts__whenNoProductsExists(MockServer mockServer) {
+        /*ResponseEntity<SimpleProductResponse[]> productResponse = new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class);*/
+        List<SimpleProductResponse> actualProduct = new ProductServiceClient(restTemplate).getAllProducts();
+
+        assertEquals(Collections.emptyList(), actualProduct);
+    }
+
+    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+    public V4Pact getProductDetailsById(PactDslWithProvider builder) {
+        return builder
+            .given("product with ID P101 exists", "id", "P101")
+                .uponReceiving("get product with ID P101")
+                .method("GET")
+                .path("/api/products/P101")
+            .willRespondWith()
+                .status(200)
+                .headers(HEADERS)
+                .body(new PactDslJsonBody()
+                    .stringMatcher("productId", REGEX_PRODUCT_ID, "P101") // Regex ensures it starts with 'P' followed by digits
+                    .stringType("productName", "Product1")
+                    .numberType("price", 500)
+                    .stringMatcher("type", "ELECTRONICS|SPORTS|BEAUTY|FASHION", "ELECTRONICS") // Allowed values; use stringMatcher instead of stringType to match one of the allowed types
+                    .stringMatcher("version", "\\d+\\.\\d", "1.0") // Numeric decimal with up to 1 digit after the decimal point
+                    .stringMatcher("createdAt", "\\d{2}-\\d{2}-\\d{4}", "01-01-2025") // Ensures 'dd-MM-yyyy' format
+                    .booleanType("active", true)
+                )
+            .toPact(V4Pact.class);
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "getProductDetailsById", pactVersion = V4)
+    void testGetProductDetailsById__whenProductWithId_P101_Exists(MockServer mockServer) {
+        DetailProductResponse expectedProduct = new ProductServiceClient(restTemplate).getProductById("P101");
+
+        DetailProductResponse actualProduct = new DetailProductResponse("P101", "Product1", 500, "ELECTRONICS", "1.0", true);
+
+        assertThat(actualProduct.getProductId()).isEqualTo(expectedProduct.getProductId());
+        assertThat(actualProduct)
+            .usingRecursiveComparison()
+            .ignoringFields("createdAt", "updatedAt")
+            .isEqualTo(expectedProduct);
+    }
+
+    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+    public V4Pact productDetailsNotExist(PactDslWithProvider builder) {
+        return builder
+            .given("product with ID P101 does not exists", "id", "P101")
+                .uponReceiving("get product with ID P101")
+                .method("GET")
+                .path("/api/products/P101")
+            .willRespondWith()
+                .status(HttpStatus.NOT_FOUND.value()) // 404
+            .toPact(V4Pact.class);
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "productDetailsNotExist", pactVersion = V4)
+    void testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer mockServer) {
+        HttpClientErrorException e = assertThrows(
+                HttpClientErrorException.class,
+                () -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products/P101", DetailProductResponse.class)
+        );
+        assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode()); // 404
+    }
+
+
+    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+    public V4Pact createProduct(PactDslWithProvider builder) {
+        return builder
+            .given("create new product")
+                .uponReceiving("create new product with productName and price")
+                .method("POST")
+                .path("/api/products")
+                .matchHeader("Content-Type", "application/json")
+                .body(new PactDslJsonBody()
+                        .stringType("productName", "Product1")
+                        .numberType("price", 500)
+                )
+            .willRespondWith()
+                .status(201) // HttpStatus.CREATED.value()
+                .headers(Map.of("Content-Type", "application/json"))
+                .body(new PactDslJsonBody()
+                        .stringMatcher("productId", REGEX_PRODUCT_ID, "P12345") // Any productId starting with 'P'
+                        .stringType("productName", "Product1")
+                        .numberType("price", 500)
+                )
+            .toPact(V4Pact.class);
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "createProduct", pactVersion = V4)
+    void testCreateProduct(MockServer mockServer) {
+        SimpleProductResponse expectedProductCreateResponse = new SimpleProductResponse("P001", "Product1", 500);
+
+        ProductCreateRequest productCreateRequest = new ProductCreateRequest("Product1", 500);
+        /*ResponseEntity<SimpleProductResponse> actualProductCreateResponse = new RestTemplate().postForEntity(mockServer.getUrl() + "/api/products", productCreateRequest, SimpleProductResponse.class);*/
+        SimpleProductResponse actualProductCreateResponse = new ProductServiceClient(restTemplate).createNewProduct(productCreateRequest);
+
+
+        // Validate the productId matches the expected pattern (starts with 'P')
+        assert actualProductCreateResponse != null;
+        assertThat(actualProductCreateResponse.getProductId()).matches(REGEX_PRODUCT_ID); // This checks that productId starts with 'P'
+
+        assertThat(actualProductCreateResponse)
+                .usingRecursiveComparison()
+                .ignoringFields("productId")
+                .isEqualTo(expectedProductCreateResponse);
+    }
+
 }
 ````
 
