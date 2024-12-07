@@ -16,12 +16,12 @@ public class DetailProductResponse extends SimpleProductResponse {
     @Setter
     private boolean active;
 
-    public DetailProductResponse(String productId, String productName, int price, String type, String version) {
+    public DetailProductResponse(String productId, String productName, int price, String type, String version, boolean active) {
         super(productId, productName, price);
         this.type = type;
         this.version = version;
         this.createdAt = LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         this.updatedAt = LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        this.active = false;
+        this.active = active;
     }
 }
