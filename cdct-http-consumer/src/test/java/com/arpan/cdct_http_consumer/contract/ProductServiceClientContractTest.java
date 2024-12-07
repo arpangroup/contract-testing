@@ -37,6 +37,7 @@ public class ProductServiceClientContractTest {
     private static final Logger log = LoggerFactory.getLogger(ProductServiceClientContractTest.class);
     static final String CONSUMER_NAME__WEB_BROWSER = "WebBrowserConsumer";
     static final String PROVIDER_NAME_PRODUCT_SERVICE = "ProductServiceProvider";
+    static final Map<String, String> HEADERS = Map.of("Content-Type", "application/json");
 
     @Autowired
     private ProductServiceClient productServiceClient;
@@ -60,7 +61,7 @@ public class ProductServiceClientContractTest {
                     //.headers(Map.of("Content-Type", "application/json"))
                 .willRespondWith()
                     .status(200)
-                    //.headers(headers())
+                    .headers(HEADERS)
                     /*.body(new PactDslJsonBody() //PactDslJsonArray
                         .minArrayLike("products", 1, 2)  // name="products" size=1, numberExamples=2
                             .integerType("productId", "P101")
@@ -130,7 +131,7 @@ public class ProductServiceClientContractTest {
                     .matchHeader("Authorization", "Bearer (19|20)[a-zA-Z0-9]+") // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
                 .willRespondWith()
                     .status(200)
-                    .headers(headers())
+                    .headers(HEADERS)
                     .body("[]")
                 .toPact(V4Pact.class);
     }
@@ -154,7 +155,7 @@ public class ProductServiceClientContractTest {
                     .path("/api/products")
                 .willRespondWith()
                     .status(401)
-                    .headers(headers())
+                    .headers(HEADERS)
                     .body("{\"error:\": \"Unauthorized\"}")
                     .toPact(V4Pact.class);
     }
@@ -181,6 +182,7 @@ public class ProductServiceClientContractTest {
                     .matchHeader("Authorization", "Bearer (19|20)[a-zA-Z0-9]+")
                 .willRespondWith()
                     .status(200)
+                    .headers(HEADERS)
                     .body(
                         new PactDslJsonBody()
                                 .stringMatcher("productId", "P\\d+", "P101") // Regex ensures it starts with 'P' followed by digits
@@ -247,7 +249,7 @@ public class ProductServiceClientContractTest {
                     )
                 .willRespondWith()
                     .status(201) // HttpStatus.CREATED.value()
-                    .headers(Map.of("Content-Type", "application/json"))
+                    .headers(HEADERS)
                     .body(new PactDslJsonBody()
                         .stringType("productId", "P\\d+", "P1234") // Regex ensures it starts with 'P' followed by digits
                         .stringType("productName", "Product1")
@@ -268,4 +270,5 @@ public class ProductServiceClientContractTest {
         // Validate
         assertThat(actualProductCreateResponse.getBody()).usingRecursiveComparison().isEqualTo(expectedProductCreateResponse);
     }
+
 }
