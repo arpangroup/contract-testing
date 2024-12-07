@@ -336,8 +336,20 @@ cdct-http-consumer ❯ ./mvnw verify
 [INFO] Finished at: 2024-12-08T02:34:33+05:30
 [INFO] ------------------------------------------------------------------------
 ````
-A pact file should have been generated in `cdct-http-consumer/target/pacts/ProductCatalogue-ProductService.json`
+A pact file should have been generated in `cdct-http-consumer/target/pacts/WebBrowserConsumer-ProductServiceProvider.json`
 
 
 *Move on to [step 3](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step2#step-2---client-tested-but-integration-fails)*
 
+
+## Step 3 - Verify the provider
+We will need to copy the Pact contract file that was produced from the consumer test into the Provider module. This will help us verify that the provider can meet the requirements as set out in the contract.
+
+Copy the contract located in `cdct-http-consumer/target/pacts/ProductCatalogue-ProductService.json` to `cdct-http-provider/pacts/WebBrowserConsumer-ProductServiceProvider.json`.
+
+Now let's make a start on writing a Pact test to validate the consumer contract:
+
+In `cdct-http-provider/src/test/java/io/pact/workshop/product_service/PactVerificationTest.java`:
+
+````java
+````
