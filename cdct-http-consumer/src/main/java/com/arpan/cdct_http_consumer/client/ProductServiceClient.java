@@ -11,17 +11,16 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,7 +33,20 @@ public class ProductServiceClient {
     //@Value("${serviceClients.products.baseUrl:http://localhost:8080/api/products}")
     private String baseUrl = "/api/products";
 
-    public List<SimpleProductResponse> getAllProducts() { // RestClientException: HttpClientErrorException
+    public List<SimpleProductResponse> getAllProducts() {
+        SimpleProductResponse[] productList = callApi("", SimpleProductResponse[].class);
+        return Arrays.asList(productList);
+    }
+
+    public DetailProductResponse getProductById(String productId) {
+        return callApi("/" + productId, DetailProductResponse.class);
+    }
+
+    public SimpleProductResponse createNewProduct(ProductCreateRequest productCreateRequest) {
+        return postApi("", productCreateRequest, SimpleProductResponse.class);
+    }
+
+    /*public List<SimpleProductResponse> getAllProducts() { // RestClientException: HttpClientErrorException
         try {
             SimpleProductResponse[] productList = restTemplate.getForObject(baseUrl, SimpleProductResponse[].class);
             return Arrays.asList(productList);
@@ -60,7 +72,6 @@ public class ProductServiceClient {
             log.error("Error occurred while fetching product by ID {}: {}",productId, e.getMessage());
             throw new CustomException("Failed to fetch product", e);
         }
-
     }
 
     public @Nullable SimpleProductResponse createNewProduct(@Nonnull ProductCreateRequest productCreateRequest) {
@@ -76,12 +87,30 @@ public class ProductServiceClient {
             log.error("Error occurred while creating product: {}", e.getMessage());
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         }
+    }*/
+
+
+    private <T> T callApi(String path, Class<T> responseType) {
+        return callApi(path, responseType, HttpMethod.GET, null);
     }
 
-    public HttpEntity<Object> createEntityWithHeaders(Object request) {
+    private <T> T postApi(String path, Object requestBody, Class<T> responseType) {
+        return callApi(path, responseType, HttpMethod.POST, requestBody);
+    }
+
+    private <T> T callApi(String path, Class<T> responseType, HttpMethod httpMethod, Object requestBody) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer 20xA1vQ2k3y");
-        headers.set("Content-Type", "application/json");
-        return new HttpEntity<>(request, headers);
+        headers.setBearerAuth(generateBearerToken());
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+        if (requestBody != null) {
+            requestEntity = new HttpEntity<>(requestBody, headers);
+        }
+        return restTemplate.exchange(baseUrl + path, httpMethod, requestEntity, responseType).getBody();
+    }
+
+    private String generateBearerToken() {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(System.currentTimeMillis());
+        return Base64.getEncoder().encodeToString(buffer.array());
     }
 }

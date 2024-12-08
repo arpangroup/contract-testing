@@ -688,3 +688,81 @@ cdct-http-provider ❯ ./mvnw verify
 **NOTE:** The states are not necessarily a 1 to 1 mapping with the consumer contract tests. You can reuse states amongst different tests. In this scenario we could have used `no products exist` for both tests which would have equally been valid.
 
 *Move on to [step 6](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
+
+## Step 6 - Authorization
+It turns out that not everyone should be able to use the API. After a discussion with the team, it was decided that a time-bound bearer token would suffice. The token must be base64 encoded format of a timestamp value and within 1 hour of the current time.
+
+In the case a valid bearer token is not provided, we expect a `401`. Let's update the consumer to pass the bearer token, and capture this new 401 scenario.
+
+In `cdct-http-consumer/src/main/java/com/arpan/cdct_http_consumer/client/ProductServiceClient.java`:
+````java
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ProductServiceClient {
+    private final RestTemplate restTemplate;
+
+    //@Value("${serviceClients.products.baseUrl:http://localhost:8080/api/products}")
+    private String baseUrl = "/api/products";
+
+    public List<SimpleProductResponse> getAllProducts() {
+        SimpleProductResponse[] productList = callApi("", SimpleProductResponse[].class);
+        return Arrays.asList(productList);
+    }
+
+    public DetailProductResponse getProductById(String productId) {
+        return callApi("/" + productId, DetailProductResponse.class);
+    }
+
+    public SimpleProductResponse createNewProduct(ProductCreateRequest productCreateRequest) {
+        return postApi("", productCreateRequest, SimpleProductResponse.class);
+    }
+
+    // **********************************************************
+    private <T> T callApi(String path, Class<T> responseType) {
+        return callApi(path, responseType, HttpMethod.GET, null);
+    }
+
+    private <T> T postApi(String path, Object requestBody, Class<T> responseType) {
+        return callApi(path, responseType, HttpMethod.POST, requestBody);
+    }
+
+    private <T> T callApi(String path, Class<T> responseType, HttpMethod httpMethod, Object requestBody) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(generateBearerToken());
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+        if (requestBody != null) {
+            requestEntity = new HttpEntity<>(requestBody, headers);
+        }
+        return restTemplate.exchange(baseUrl + path, httpMethod, requestEntity, responseType).getBody();
+    }
+
+    private String generateBearerToken() {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(System.currentTimeMillis());
+        return Base64.getEncoder().encodeToString(buffer.array());
+    }
+}
+````
+We add in
+`cdct-http-consumer/src/test/java/com/arpan/cdct_http_consumer/contract/ProductServiceClientContractTest.java`:
+````java
+    .matchHeader("Authorization", "Bearer [a-zA-Z0-9=\\+/]+", "Bearer AAABd9yHUjI=")
+````
+to all the interactions and two new interactions:
+
+Then re-run the Pact test to generate a new Pact file.
+
+Let's test the provider. Copy the updated pact file into the provider's pact directory and run the tests:
+
+````console
+cdct-http-provider ❯ ./mvnw verify
+
+<<< Omitted >>>
+
+````
+Now with the most recently added interactions where we are expecting a response of 401, but the provider is not handling any authentication, so we are getting 200...
+
+*Move on to [step 7](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
+
+## Step 7 - Implement authorisation on the provider
