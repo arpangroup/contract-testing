@@ -338,8 +338,9 @@ cdct-http-consumer ❯ ./mvnw verify
 ````
 A pact file should have been generated in `cdct-http-consumer/target/pacts/WebBrowserConsumer-ProductServiceProvider.json`
 
+[View the generated WebBrowserConsumer-ProductServiceProvider.json](diagrams/WebBrowserConsumer-ProductServiceProvider.json)
 
-*Move on to [step 3](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step2#step-2---client-tested-but-integration-fails)*
+*Move on to [step 3](https://github.com/arpangroup/contract-testing/tree/cdct-step3?tab=readme-ov-file#step-3---verify-the-provider)*
 
 
 ## Step 3 - Verify the provider
@@ -373,3 +374,6 @@ In `cdct-http-provider/src/test/java/io/pact/workshop/product_service/ProductSer
 public class ProductServiceProviderContractTest {
 }
 ````
+
+
+*Move on to [step 4](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-3---verify-the-provider)*
