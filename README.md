@@ -810,7 +810,7 @@ Now with the most recently added interactions where we are expecting a response 
 
 *Move on to [step 7](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
 
-## Step 7 - Implement authorisation on the provider
+## 
 We will setup Spring Security to check the Authorization header and deny the request with `401` if the token is missing or older than 1 hour.
 In `cdct-http-provider/src/main/java/com/arpan/cdct_http_provider/filters/BearerAuthorizationFilter.java`:
 
@@ -822,26 +822,51 @@ public class BearerAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String header = request.getHeader("Authorization");
         if (tokenValid(header)) {
-            SecurityContextHolder.getContext().setAuthentication(new PreAuthenticatedAuthenticationToken("user", header));
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("user", null, new ArrayList<>());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
         } else {
+            log.error("Bearer Token Not Valid: {}", header);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
 
     private boolean tokenValid(String header) {
         boolean hasBearerToken = StringUtils.isNotEmpty(header) && header.startsWith("Bearer ");
-        if (hasBearerToken) {
-            String token = header.substring("Bearer ".length());
-            ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-            buffer.put(Base64.getDecoder().decode(token));
-            buffer.flip();
-            long timestamp = buffer.getLong();
-            return System.currentTimeMillis() - timestamp <= ONE_HOUR;
-        } else {
-            return false;
-        }
+        return hasBearerToken;
     }
+}
+````
+
+Register the filter to filterChain
+````java
+@Configuration
+@RequiredArgsConstructor
+public class SecurityConfig {
+    private final BearerAuthorizationFilter bearerAuthorizationFilter;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf().disable() // Adjust this for production
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll()
+                )
+                .addFilterBefore(bearerAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
 }
 ````
 
