@@ -895,5 +895,3 @@ Failures:
 Oh, dear. More tests are failing. Can you understand why?
 
 *Move on to [step 8](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
-
-## Step 8 - Request Filters on the Provider
