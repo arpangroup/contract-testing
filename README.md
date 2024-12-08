@@ -951,3 +951,26 @@ In `cdct-http-provider/src/test/java/com/arpan/cdct_http_provider/contract/Produ
     return Base64.getEncoder().encodeToString(buffer.array());
   }
 ````
+We can now run the Provider tests
+````console
+cdct-http-provider ❯ ./mvnw verify
+
+<<< Omitted >>>
+
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ cdct-http-provider ---
+[INFO] Building jar: D:\java-projects\contract-testing\cdct-http-provider\target\cdct-http-provider-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.4.0:repackage (repackage) @ cdct-http-provider ---
+[INFO] Replacing main artifact D:\java-projects\contract-testing\cdct-http-provider\target\cdct-http-provider-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to D:\java-projects\contract-testing\cdct-http-provider\target\cdct-http-provider-0.0.1-SNAPSHOT.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+````
+
+*Move on to [step 9](https://github.com/arpangroup/contract-testing/tree/cdct-step2?tab=readme-ov-file#step-2---contract-test-using-pact)*
