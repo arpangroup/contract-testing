@@ -448,3 +448,5 @@ with Consumer "WebBrowserConsumer"
 Yay - green ✅!
 
 *Move on to [step 4](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-3---verify-the-provider)*
+
+## Step 4 - Consumer updates contract for missing products
