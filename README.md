@@ -768,3 +768,51 @@ Now with the most recently added interactions where we are expecting a response 
 *Move on to [step 7](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
 
 ## Step 7 - Implement authorisation on the provider
+We will setup Spring Security to check the Authorization header and deny the request with `401` if the token is missing or older than 1 hour.
+In `cdct-http-provider/src/main/java/com/arpan/cdct_http_provider/filters/BearerAuthorizationFilter.java`:
+
+````java
+public class BearerAuthorizationFilter extends OncePerRequestFilter {
+    public static final long ONE_HOUR = 60 * 60 * 1000L;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String header = request.getHeader("Authorization");
+        if (tokenValid(header)) {
+            SecurityContextHolder.getContext().setAuthentication(new PreAuthenticatedAuthenticationToken("user", header));
+            filterChain.doFilter(request, response);
+        } else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
+    }
+
+    private boolean tokenValid(String header) {
+        boolean hasBearerToken = StringUtils.isNotEmpty(header) && header.startsWith("Bearer ");
+        if (hasBearerToken) {
+            String token = header.substring("Bearer ".length());
+            ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+            buffer.put(Base64.getDecoder().decode(token));
+            buffer.flip();
+            long timestamp = buffer.getLong();
+            return System.currentTimeMillis() - timestamp <= ONE_HOUR;
+        } else {
+            return false;
+        }
+    }
+}
+````
+
+Let's test this out:
+
+````console
+cdct-http-provider ❯ ./mvnw verify
+
+<<< Omitted >>>
+
+[INFO] 
+````
+Oh, dear. More tests are failing. Can you understand why?
+
+*Move on to [step 8](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
+
+## Step 8 - Request Filters on the Provider
