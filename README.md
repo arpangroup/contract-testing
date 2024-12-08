@@ -608,3 +608,25 @@ We expected this failure, because the product we are requesting does in fact exi
 We could resolve this by updating our consumer test to use a known non-existent product, but it's worth understanding how Provider states work more generally.
 
 *Move on to [step 5](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-4---consumer-updates-contract-for-missing-products)*
+
+## Step 5 - Adding the missing states
+We need to update our provider code to deal with missing products and send a 404 response. However, our test data fixture also has product ID P101 in our database.
+
+In this step, we will add some state handlers to our provider Pact verification test, which will update the state of our data store depending on which states the consumers require.
+
+States are invoked prior to the actual test function is invoked. For each interaction in a pact file, the order of execution is as follows:
+
+> BeforeEach -> StateHandler (setup) -> RequestFilter -> Execute Provider Test -> StateHandler (teardown) -> AfterEach
+
+We're going to add handlers for all our states:
+- products exist
+- no products exist
+- product with ID P101 exists
+- product with ID P101 does not exist
+
+Let's open up our provider Pact verification test in
+`cdct-http-provider/src/test/java/com/arpan/cdct_http_provider/contract/ProductServiceProviderContractTest.java`:
+
+````java
+
+````
