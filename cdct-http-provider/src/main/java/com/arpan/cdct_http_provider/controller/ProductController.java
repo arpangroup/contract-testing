@@ -15,7 +15,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin("*")
@@ -26,9 +25,10 @@ public class ProductController {
     private final ProductRepository repository;
     private final ProductMapper mapper;
 
-    @GetMapping
-    public List<SimpleProductResponse> getAllProducts() {
-       return repository.findAll().stream().map(mapper::mapTo).toList();
+    @GetMapping()
+    public ResponseEntity<List<SimpleProductResponse>> getAllProducts() {
+       List<SimpleProductResponse> products = repository.findAll().stream().map(mapper::mapTo).toList();
+       return ResponseEntity.ok(products);
     }
 
     @GetMapping("/{productId}")
