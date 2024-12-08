@@ -8,7 +8,7 @@
 - [step 2: **pact test**](https://github.com/arpangroup/contract-testing/tree/cdct-step2?tab=readme-ov-file#step-2---contract-test-using-pact): Write a Pact test for our consumer
 - [step 3: **pact verification**](https://github.com/arpangroup/contract-testing/tree/cdct-step3?tab=readme-ov-file#step-3---verify-the-provider): Verify the provider
 - [step 4: **pact test**](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-4---consumer-updates-contract-for-missing-products): Write a pact test for `404` (missing User) in consumer
-- [step 7: **provider states**](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step7#step-7---adding-the-missing-states): Update API to handle `404` case
+- [step 7: **provider states**](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step7#step-7---adding-the-missing-states): Update Provider to handle `404` case
 - [step 8: **pact test**](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step8#step-8---authorization): Write a pact test for the `401` case
 - [step 9: **pact test**](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step9#step-9---implement-authorisation-on-the-provider): Update API to handle `401` case
 - [step 10: **request filters**](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step10#step-10---request-filters-on-the-provider): Fix the provider to support the `401` case
@@ -446,3 +446,165 @@ with Consumer "WebBrowserConsumer"
 Yay - green ✅!
 
 *Move on to [step 4](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-4---consumer-updates-contract-for-missing-products)*
+
+## Step 4 - Consumer updates contract for missing products
+
+We're now going to add 2 more scenarios for the contract
+- What happens when we make a call for a product that doesn't exist? We assume we'll get a `404` (NOT_FOUND).
+- What happens when we make a call for getting all products but none exist at the moment? We assume a 200 with an empty array.
+
+Let's write a test for these scenarios, and then generate an updated pact file.
+
+In `cdct-http-consumer/src/test/java/com/arpan/cdct_http_consumer/contract/ProductServiceClientContractTest.java`:
+
+````java
+@Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+public V4Pact noProductsExists(PactDslWithProvider builder) {
+    return builder
+            .given("no product exists")
+                .uponReceiving("get all products")
+                .method("GET")
+                .path("/api/products")
+                //.matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
+            .willRespondWith()
+                .status(200)
+                .headers(HEADERS)
+                .body("[]")
+            .toPact(V4Pact.class);
+}
+
+@Test
+@PactTestFor(pactMethod = "noProductsExists", pactVersion = V4)
+void testGetAllProducts__whenNoProductsExists(MockServer mockServer) {
+    /*ResponseEntity<SimpleProductResponse[]> productResponse = new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class);*/
+    List<SimpleProductResponse> actualProduct = new ProductServiceClient(restTemplate).getAllProducts();
+
+    assertEquals(Collections.emptyList(), actualProduct);
+}
+
+@Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+public V4Pact productDetailsNotExist(PactDslWithProvider builder) {
+    return builder
+            .given("product with ID P101 does not exists", "id", "P101")
+            .uponReceiving("get product with ID P101")
+            .method("GET")
+            .path("/api/products/P101")
+            //.matchHeader("Authorization", SAMPLE_BEARER_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.NOT_FOUND.value()) // 404
+            .toPact(V4Pact.class);
+}
+
+@Test
+@PactTestFor(pactMethod = "productDetailsNotExist", pactVersion = V4)
+void testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer mockServer) {
+    HttpClientErrorException e = assertThrows(
+            HttpClientErrorException.class,
+            () -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products/P101", DetailProductResponse.class)
+    );
+    assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode()); // 404
+}
+
+````
+Notice that our new tests look almost identical to our previous tests, and only differ on the expectations of the response - the HTTP request expectations are exactly the same.
+
+````console
+cdct-http-consumer ❯ ./mvnw verify
+
+<<< Omitted >>>
+
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ cdct-http-consumer ---
+[INFO] Building jar: D:\java-projects\contract-testing\cdct-http-consumer\target\cdct-http-consumer-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.4.0:repackage (repackage) @ cdct-http-consumer ---
+[INFO] Replacing main artifact D:\java-projects\contract-testing\cdct-http-consumer\target\cdct-http-consumer-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to D:\java-projects\contract-testing\cdct-http-consumer\target\cdct-http-consumer-0.0.1-SNAPSHOT.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+````
+What does our provider have to say about this new test. Again, copy the updated pact file into the provider's pact directory and run the command:
+
+````console
+cdct-http-provider ❯ ./mvnw verify
+
+<<< Omitted >>>
+
+Verifying a pact between WebBrowserConsumer and ProductServiceProvider
+  [Using File src\test\resources\pacts\WebBrowserConsumer-ProductServiceProvider.json]
+  Given no product exists
+  get all products
+  Test Name: com.arpan.cdct_http_consumer.contract.ProductServiceClientContractTest.testGetAllProducts__whenNoProductsExists(MockServer)
+  Comments:
+    returns a response which
+      has status code 200 (OK)
+      has a matching body (FAILED)
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get all products has a matching body
+    1.1) body: $ Expected an empty List but received [{"price":500,"productId":"P101","productName":"Product1"},{"price":600,"productId":"P102","productName":"Product2"},{"price":700,"productId":"P103","productName":"Product3"},{"price":800,"productId":"P104","productName":"Product4"},{"price":900,"productId":"P105","productName":"Product5"},{"price":500,"productId":"P106","productName":"Product1"}]
+        [
+        -
+        +  {
+        +    "price": 500,
+        +    "productId": "P101",
+        +    "productName": "Product1"
+        +  },
+        +  {
+        +    "price": 600,
+        +    "productId": "P102",
+        +    "productName": "Product2"
+        +  },
+        +  {
+        +    "price": 700,
+        +    "productId": "P103",
+        +    "productName": "Product3"
+        +  },
+        +  {
+        +    "price": 800,
+        +    "productId": "P104",
+        +    "productName": "Product4"
+        +  },
+        +  {
+        +    "price": 900,
+        +    "productId": "P105",
+        +    "productName": "Product5"
+        +  },
+        +  {
+        +    "price": 500,
+        +    "productId": "P106",
+        +    "productName": "Product1"
+        +  }
+        ]
+2024-12-08T12:02:52.424+05:30  WARN 36376 --- [cdct-http-provider] [           main] a.c.d.p.p.DefaultTestResultAccumulator   : Not all of the 5 were verified. The following were missing:
+2024-12-08T12:02:52.424+05:30  WARN 36376 --- [cdct-http-provider] [           main] a.c.d.p.p.DefaultTestResultAccumulator   :     get product with ID P101
+2024-12-08T12:02:52.424+05:30  WARN 36376 --- [cdct-http-provider] [           main] a.c.d.p.p.DefaultTestResultAccumulator   :     get product with ID P101
+2024-12-08T12:02:52.424+05:30  WARN 36376 --- [cdct-http-provider] [           main] a.c.d.p.p.DefaultTestResultAccumulator   :     get all products
+2024-12-08T12:02:52.425+05:30  WARN 36376 --- [cdct-http-provider] [           main] rificationStateChangeExtension$Companion : Did not find a test class method annotated with @State("no product exists") 
+for Interaction "get all products" 
+with Consumer "WebBrowserConsumer"
+2024-12-08T12:02:52.433+05:30  WARN 36376 --- [cdct-http-provider] [           main] rificationStateChangeExtension$Companion : Did not find a test class method annotated with @State("product with ID P101 does not exists") 
+for Interaction "get product with ID P101" 
+with Consumer "WebBrowserConsumer"
+Verifying a pact between WebBrowserConsumer and ProductServiceProvider
+  [Using File src\test\resources\pacts\WebBrowserConsumer-ProductServiceProvider.json]
+  Given product with ID P101 does not exists
+  get product with ID P101
+  Test Name: com.arpan.cdct_http_consumer.contract.ProductServiceClientContractTest.testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer)
+  Comments:
+    returns a response which
+      has status code 404 (FAILED)
+      has a matching body (OK)
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get product with ID P101: has status code 404
+    1.1) status: expected status of 404 but was 200
+````
+We expected this failure, because the product we are requesting does in fact exist! What we want to test for, is what happens if there is a different state on the Provider. This is what is referred to as "Provider states", and how Pact gets around test ordering and related issues.
+
+We could resolve this by updating our consumer test to use a known non-existent product, but it's worth understanding how Provider states work more generally.
+
+*Move on to [step 5](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-4---consumer-updates-contract-for-missing-products)*

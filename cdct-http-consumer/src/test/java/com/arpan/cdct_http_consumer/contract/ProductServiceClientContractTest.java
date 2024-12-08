@@ -223,7 +223,6 @@ public class ProductServiceClientContractTest {
         assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode()); // 404
     }
 
-
     @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
     public V4Pact createProduct(PactDslWithProvider builder) {
         return builder
