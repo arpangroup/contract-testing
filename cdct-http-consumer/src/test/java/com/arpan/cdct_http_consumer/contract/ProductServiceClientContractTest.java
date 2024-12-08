@@ -283,7 +283,7 @@ public class ProductServiceClientContractTest {
                 .willRespondWith()
                 .status(HttpStatus.UNAUTHORIZED.value()) // 401
                 .headers(HEADERS)
-                .body("{\"error:\": \"Unauthorized\"}")
+                .body("{\"error\": \"Unauthorized\"}")
                 .toPact(V4Pact.class);
     }
 
