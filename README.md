@@ -749,6 +749,34 @@ We add in
 ````java
     .matchHeader("Authorization", "Bearer [a-zA-Z0-9=\\+/]+", "Bearer AAABd9yHUjI=")
 ````
+to all the interactions and one new interactions:
+
+````java
+@Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+public V4Pact allProductsNoAuthToken(PactDslWithProvider builder) {
+    return builder
+        .given("product exists")
+            .uponReceiving("get all products with no auth token")
+            .method("GET")
+            .path("/api/products")
+        .willRespondWith()
+            .status(HttpStatus.UNAUTHORIZED.value()) // 401
+            .headers(HEADERS)
+            .body("{\"error:\": \"Unauthorized\"}")
+            .toPact(V4Pact.class);
+}
+
+@Test
+@PactTestFor(pactMethod = "allProductsNoAuthToken", pactVersion = V4)
+void testGetAllProducts__whenNoAuth(MockServer mockServer) {
+
+    HttpClientErrorException e = assertThrows(
+            HttpClientErrorException.class,
+            () -> new ProductServiceClient(restTemplate).getAllProducts()
+    );
+    assertEquals(HttpStatus.UNAUTHORIZED.value(), e.getStatusCode().value()); //401
+}
+````
 to all the interactions and two new interactions:
 
 Then re-run the Pact test to generate a new Pact file.
