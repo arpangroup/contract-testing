@@ -6,10 +6,7 @@ import com.arpan.cdct_http_provider.model.Product;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 public class ProductRepository {
@@ -31,14 +28,16 @@ public class ProductRepository {
         return this.products;
     }
 
-    public Product findById(final String productId) {
-        return products.stream().filter(p -> Objects.equals(p.getProductId(), productId)).findAny().orElseThrow(() -> new ProductNotFoundException(productId));
+    public Optional<Product> findById(final String productId) {
+        return this.products.stream().filter(p -> p.getProductId().equals(productId)).findFirst();
     }
 
     public Product save(Product product) {
         try {
-            product.setProductId("P10" + (this.products.size() + 1));
-            products.add(product);
+           if (product.getProductId() == null) {
+               product.setProductId("P10" + (this.products.size() + 1));
+           }
+            this.products.add(product);
             return product;
         } catch (Exception e) {
             e.printStackTrace();
@@ -48,6 +47,11 @@ public class ProductRepository {
 
     public void deleteAll() {
         this.products = new ArrayList<>();
+    }
+
+    public void deleteById(String productId) {
+        Optional<Product> product = products.stream().filter(p -> p.getProductId().equals(productId)).findFirst();
+        product.ifPresent(value -> this.products.remove(value));
     }
 
     public void saveAll(List<Product> products) {

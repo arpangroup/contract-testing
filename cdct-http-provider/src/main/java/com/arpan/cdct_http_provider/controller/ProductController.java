@@ -1,6 +1,7 @@
 package com.arpan.cdct_http_provider.controller;
 
 import com.arpan.cdct_http_provider.exceptions.BadRequestException;
+import com.arpan.cdct_http_provider.exceptions.ProductNotFoundException;
 import com.arpan.cdct_http_provider.mapper.ProductMapper;
 import com.arpan.cdct_http_provider.model.Product;
 import com.arpan.cdct_http_provider.model.ProductCreateRequest;
@@ -27,18 +28,18 @@ public class ProductController {
 
     @GetMapping
     public List<SimpleProductResponse> getAllProducts() {
-        return repository.findAll().stream().map(mapper::mapTo).toList();
+       return repository.findAll().stream().map(mapper::mapTo).toList();
     }
 
     @GetMapping("/{productId}")
     public Product getProductDetails(@PathVariable String productId) {
         if (!StringUtils.hasText(productId)) throw new BadRequestException();
-        return repository.findById(productId);
+        return repository.findById(productId).orElseThrow(ProductNotFoundException::new);
     }
 
     @PostMapping
-    public ResponseEntity<Product> createNewProduct(@RequestBody ProductCreateRequest requestDto) {
-        Product productResponse = repository.save(mapper.mapTo(requestDto));
+    public ResponseEntity<Product> createNewProduct(@RequestBody ProductCreateRequest productCreateRequest) {
+        Product productResponse = repository.save(mapper.mapTo(productCreateRequest));
         return ResponseEntity.status(HttpStatus.CREATED).body(productResponse);
     }
 }
