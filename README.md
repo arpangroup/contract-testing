@@ -288,8 +288,9 @@ cdct-http-consumer ❯ ./mvnw verify
 [INFO] Finished at: 2024-12-08T02:34:33+05:30
 [INFO] ------------------------------------------------------------------------
 ````
-A pact file should have been generated in `cdct-http-consumer/target/pacts/ProductCatalogue-ProductService.json`
+A pact file should have been generated in `cdct-http-consumer/target/pacts/WebBrowserConsumer-ProductServiceProvider.json`
 
+[View the generated WebBrowserConsumer-ProductServiceProvider.json](diagrans/WebBrowserConsumer-ProductServiceProvider.json)
 
 *Move on to [step 3](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step2#step-2---client-tested-but-integration-fails)*
 
