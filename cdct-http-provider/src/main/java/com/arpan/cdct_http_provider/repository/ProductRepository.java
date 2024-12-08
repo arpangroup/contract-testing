@@ -18,11 +18,11 @@ public class ProductRepository {
     @PostConstruct
     public void init() {
         products.addAll(Arrays.asList(
-                new Product("P101", "Product1", 500, "", null, false),
-                new Product("P102", "Product2", 600, "", null, false),
-                new Product("P103", "Product3", 700, "", null, false),
-                new Product("P104", "Product4", 800, "", null, false),
-                new Product("P105", "Product5", 900, "", null, false)
+                new Product("P101", "Product1", 500, null, null, false),
+                new Product("P102", "Product2", 600, null, null, false),
+                new Product("P103", "Product3", 700, null, null, false),
+                new Product("P104", "Product4", 800, null, null, false),
+                new Product("P105", "Product5", 900, null, null, false)
         ));
     }
 
