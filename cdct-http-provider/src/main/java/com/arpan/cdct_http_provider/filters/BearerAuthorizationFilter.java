@@ -5,14 +5,18 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Base64;
 
+@Component
+@Order(1)
 public class BearerAuthorizationFilter extends OncePerRequestFilter {
     public static final long ONE_HOUR = 60 * 60 * 1000L;
 
