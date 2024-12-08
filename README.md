@@ -86,7 +86,7 @@ mvn spring-boot:run
 Accessing the URL for the app in the browser gives us a 500 error page as the downstream service is not running.
 You will also see an exception in the Springboot console output.
 
-*Move on to [step 2](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step2#step-2---client-tested-but-integration-fails)*
+*Move on to [step 2](https://github.com/arpangroup/contract-testing/tree/cdct-step2?tab=readme-ov-file#step-2---contract-test-using-pact)*
 
 
 
