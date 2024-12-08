@@ -974,3 +974,114 @@ cdct-http-provider ❯ ./mvnw verify
 ````
 
 *Move on to [step 9](https://github.com/arpangroup/contract-testing/tree/cdct-step2?tab=readme-ov-file#step-2---contract-test-using-pact)*
+
+## Step 9 - Using a Pact Broker
+We've been publishing our pacts from the consumer project by essentially sharing the file system with the provider. But this is not very manageable when you have multiple teams contributing to the code base, and pushing to CI. We can use a [Pact Broker](https://pactflow.io/) to do this instead.
+
+Using a broker simplifies the management of pacts and adds a number of useful features, including some safety enhancements for continuous delivery which we'll see shortly.
+
+### Running the Pact Broker with docker-compose
+In the root directory, run:
+```console
+ ❯ docker-compose up
+ ❯ docker-compose -f docker-compose-pact-brocker.yaml up -d
+```
+
+### Publish contracts from consumer
+First, in the consumer project we need to tell Pact about our broker. We will use the Pact Maven plugin to manage this.
+
+In `cdct-http-consumer/pom.xml`:
+````xml
+<build>
+  <plugins>
+      ...
+      <plugin>
+          <groupId>au.com.dius.pact.provider</groupId>
+          <artifactId>maven</artifactId>
+          <version>4.6.5</version>
+          <configuration>
+            <pactBrokerUrl>http://localhost:9292</pactBrokerUrl>
+            <pactBrokerUsername>pact_workshop</pactBrokerUsername>
+            <pactBrokerPassword>pact_workshop</pactBrokerPassword>
+          </configuration>
+      </plugin>
+  </plugins>
+</build>
+````
+And now we can run:
+````console
+cdct-http-consumer ❯ ./mvnw pact:publish
+
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< com.arpan:cdct-http-consumer >--------------------
+[INFO] Building cdct-http-consumer 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- pact:4.6.5:publish (default-cli) @ cdct-http-consumer ---
+Publishing 'WebBrowserConsumer-ProductServiceProvider.json' ...
+OK
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.954 s
+[INFO] Finished at: 2024-12-09T00:20:32+05:30
+[INFO] ------------------------------------------------------------------------
+````
+Have a browse around the broker on http://localhost:9292 (with username/password: `pact_workshop`/`pact_workshop`) and see your newly published contract!
+
+<img src="diagrams/pact_broker_1.jpg"/>
+
+### Verify contracts on Provider
+All we need to do for the provider is update the test where it finds its pacts, from local URLs, to one from a broker. We add a @PactBroker annotation to our test and change it to use the PactVerificationSpringProvider, and then create a test application YAML configuration file with the details of the Pact Broker.
+
+In `cdct-http-provider/src/test/java/com/arpan/cdct_http_provider/contract/ProductServiceProviderContractTest.java`:
+````java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Provider(PROVIDER_NAME_PRODUCT_SERVICE)
+@PactBroker
+@IgnoreMissingStateChange
+@Slf4j
+public class ProductServiceProviderContractTest {
+````
+
+Let's run the provider verification one last time after this change:
+````bash
+mvn verify "-Dpactbroker.url=http://localhost:9292" "-Dpactbroker.auth.username=pact_workshop" "-Dpactbroker.auth.password=pact_workshop" "-Dpact.verifier.publishResults=true" "-Dpact.provider.version=$(git rev-parse HEAD)" "-Dpact.provider.branch=$(git rev-parse --abbrev-ref HEAD)"
+````
+
+````console
+cdct-http-provider ❯ ./mvnw verify -Dpact.verifier.publishResults=true -Dpact.provider.version=$(git rev-parse HEAD) -Dpact.provider.branch=$(git rev-parse --abbrev-ref HEAD)
+
+<<< Omitted >>>
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- maven-jar-plugin:3.3.0:jar (default-jar) @ product-service ---
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+````
+As part of this process, the results of the verification - the outcome (boolean) and the detailed information about the failures at the interaction level - are published to the Broker also.
+
+This is one of the Broker's more powerful features. Referred to as [Verifications](https://docs.pact.io/pact_broker/advanced_topics/provider_verification_results), it allows providers to report back the status of a verification to the broker. You'll get a quick view of the status of each consumer and provider on a nice dashboard. But it is much more important than this!
+
+### Can I deploy?
+With just a simple use of the pact-broker [can-i-deploy tool](https://docs.pact.io/pact_broker/client_cli/readme#installation) - the Broker will determine if a consumer or provider is safe to release to the specified environment.
+
+You can run the can-i-deploy checks as follows:
+
+````console
+cdct-http-provider ❯ ./mvnw verify -Dpact.verifier.publishResults=true -Dpact.provider.version=$(git rev-parse HEAD) -Dpact.provider.branch=$(git rev-parse --abbrev-ref HEAD)
+````
+Read more about [can-i-deploy tool](https://docs.pact.io/pact_broker/client_cli/readme#installation).
+
+We can now [record the deployment](https://docs.pact.io/pact_broker/recording_deployments_and_releases) of the provider, and re-run our consumer can-i-deploy check which will pass, as our verified provider, will now exist in our target environment for our consumer.
+
+
+That's it - you're now a Pact pro. Go build 🔨

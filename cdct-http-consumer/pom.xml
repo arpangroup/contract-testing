@@ -69,6 +69,20 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+
+			<!--Optional: Pact Maven Plugin for Pact Publish & Provider Verification-->
+			<plugin>
+				<groupId>au.com.dius.pact.provider</groupId>
+				<artifactId>maven</artifactId>
+				<version>4.6.5</version>
+				<configuration>
+					<pactBrokerUrl>http://localhost:9292</pactBrokerUrl>
+					<pactBrokerUsername>pact_workshop</pactBrokerUsername>
+					<pactBrokerPassword>pact_workshop</pactBrokerPassword>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 

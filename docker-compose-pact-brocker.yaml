@@ -1,0 +1,32 @@
+services:
+  pact-broker:
+    image: pactfoundation/pact-broker:latest
+    ports:
+      - "9292:9292"
+    environment:
+      PACT_BROKER_BASIC_AUTH_USERNAME: "pact_workshop"
+      PACT_BROKER_BASIC_AUTH_PASSWORD: "pact_workshop"
+      PACT_BROKER_DATABASE_USERNAME: "postgres"
+      PACT_BROKER_DATABASE_PASSWORD: "password"
+      PACT_BROKER_DATABASE_ADAPTER: "postgres"
+      PACT_BROKER_DATABASE_HOST: "postgres"
+      PACT_BROKER_DATABASE_NAME: "pact_broker"
+      PACT_BROKER_DATABASE_PORT: 5432
+#      PACT_BROKER_DATABASE_CONNECT_MAX_RETRIES: "10"
+#      PACT_BROKER_PUBLIC_HEARTBEAT: "true"
+#      PACT_BROKER_WEBHOOK_SCHEME_WHITELIST: http
+#      PACT_BROKER_WEBHOOK_HOST_WHITELIST: host.docker.internal
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "pact_broker"
+    volumes:
+      - pact-broker-data:/var/lib/postgresql/data
+
+volumes:
+  pact-broker-data:

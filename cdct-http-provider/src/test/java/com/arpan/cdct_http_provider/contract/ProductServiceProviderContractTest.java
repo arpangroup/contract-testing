@@ -7,17 +7,22 @@ import au.com.dius.pact.provider.junitsupport.IgnoreMissingStateChange;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.StateChangeAction;
+import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerAuth;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import com.arpan.cdct_http_provider.model.Product;
 import com.arpan.cdct_http_provider.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.HttpRequest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.nio.ByteBuffer;
@@ -27,8 +32,10 @@ import static com.arpan.cdct_http_provider.contract.ProductServiceProviderContra
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Provider(PROVIDER_NAME_PRODUCT_SERVICE)
-@PactFolder("src/test/resources/pacts")
+@PactBroker(url = "${pactbroker.url}", authentication = @PactBrokerAuth(username = "${pactbroker.auth.username}", password = "${pactbroker.auth.password}"))
+//@PactFolder("src/test/resources/pacts")
 @IgnoreMissingStateChange
+@ActiveProfiles("test")
 @Slf4j
 public class ProductServiceProviderContractTest {
     static final String CONSUMER_NAME__WEB_BROWSER = "WebBrowserConsumer";
@@ -39,6 +46,15 @@ public class ProductServiceProviderContractTest {
 
     @Autowired
     ProductRepository productRepository;
+
+    @BeforeAll
+    static void setUp(@Value("${pactbroker.url}") String url,
+                      @Value("${pactbroker.auth.username}") String username,
+                      @Value("${pactbroker.auth.password}") String password) {
+        System.setProperty("pactbroker.url", url);
+        System.setProperty("pactbroker.auth.username", username);
+        System.setProperty("pactbroker.auth.password", password);
+    }
 
     @BeforeEach
     void setup(PactVerificationContext context) {
