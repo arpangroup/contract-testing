@@ -753,6 +753,8 @@ to all the interactions and two new interactions:
 
 Then re-run the Pact test to generate a new Pact file.
 
+[View the generated WebBrowserConsumer-ProductServiceProvider.json](diagrams/WebBrowserConsumer-ProductServiceProvider.json)
+
 Let's test the provider. Copy the updated pact file into the provider's pact directory and run the tests:
 
 ````console
