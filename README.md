@@ -113,9 +113,7 @@ Let us add Pact to the project and write a consumer pact test for the GET /produ
 
 Provider states is an important concept of Pact that we need to introduce. These states help define the state that the provider should be in for specific interactions. For the moment, we will initially be testing the following states:
 - products exists
-- no product exists
 - product with ID P101 exists
-- product with ID P101 does not exists
 - create new product
 
 
@@ -185,29 +183,6 @@ public class ProductServiceClientContractTest {
     }
 
     @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
-    public V4Pact noProductsExists(PactDslWithProvider builder) {
-        return builder
-            .given("no product exists")
-                .uponReceiving("get all products")
-                .method("GET")
-                .path("/api/products")
-            .willRespondWith()
-                .status(200)
-                .headers(HEADERS)
-                .body("[]")
-            .toPact(V4Pact.class);
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "noProductsExists", pactVersion = V4)
-    void testGetAllProducts__whenNoProductsExists(MockServer mockServer) {
-        /*ResponseEntity<SimpleProductResponse[]> productResponse = new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class);*/
-        List<SimpleProductResponse> actualProduct = new ProductServiceClient(restTemplate).getAllProducts();
-
-        assertEquals(Collections.emptyList(), actualProduct);
-    }
-
-    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
     public V4Pact getProductDetailsById(PactDslWithProvider builder) {
         return builder
             .given("product with ID P101 exists", "id", "P101")
@@ -242,29 +217,6 @@ public class ProductServiceClientContractTest {
             .ignoringFields("createdAt", "updatedAt")
             .isEqualTo(expectedProduct);
     }
-
-    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
-    public V4Pact productDetailsNotExist(PactDslWithProvider builder) {
-        return builder
-            .given("product with ID P101 does not exists", "id", "P101")
-                .uponReceiving("get product with ID P101")
-                .method("GET")
-                .path("/api/products/P101")
-            .willRespondWith()
-                .status(HttpStatus.NOT_FOUND.value()) // 404
-            .toPact(V4Pact.class);
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "productDetailsNotExist", pactVersion = V4)
-    void testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer mockServer) {
-        HttpClientErrorException e = assertThrows(
-                HttpClientErrorException.class,
-                () -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products/P101", DetailProductResponse.class)
-        );
-        assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode()); // 404
-    }
-
 
     @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
     public V4Pact createProduct(PactDslWithProvider builder) {

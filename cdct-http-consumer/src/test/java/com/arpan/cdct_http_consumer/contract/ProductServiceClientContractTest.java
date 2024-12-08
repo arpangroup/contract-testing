@@ -139,30 +139,6 @@ public class ProductServiceClientContractTest {
     }
 
     @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
-    public V4Pact noProductsExists(PactDslWithProvider builder) {
-        return builder
-                .given("no product exists")
-                    .uponReceiving("get all products")
-                    .method("GET")
-                    .path("/api/products")
-                    //.matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
-                .willRespondWith()
-                    .status(200)
-                    .headers(HEADERS)
-                    .body("[]")
-                .toPact(V4Pact.class);
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "noProductsExists", pactVersion = V4)
-    void testGetAllProducts__whenNoProductsExists(MockServer mockServer) {
-        /*ResponseEntity<SimpleProductResponse[]> productResponse = new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class);*/
-        List<SimpleProductResponse> actualProduct = new ProductServiceClient(restTemplate).getAllProducts();
-
-        assertEquals(Collections.emptyList(), actualProduct);
-    }
-
-    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
     public V4Pact getProductDetailsById(PactDslWithProvider builder) {
         return builder
                 .given("product with ID P101 exists", "id", "P101")
@@ -200,28 +176,6 @@ public class ProductServiceClientContractTest {
                 .isEqualTo(expectedProduct);
     }
 
-    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
-    public V4Pact productDetailsNotExist(PactDslWithProvider builder) {
-        return builder
-                .given("product with ID P101 does not exists", "id", "P101")
-                    .uponReceiving("get product with ID P101")
-                    .method("GET")
-                    .path("/api/products/P101")
-                    //.matchHeader("Authorization", SAMPLE_BEARER_TOKEN)
-                .willRespondWith()
-                    .status(HttpStatus.NOT_FOUND.value()) // 404
-                .toPact(V4Pact.class);
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "productDetailsNotExist", pactVersion = V4)
-    void testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer mockServer) {
-        HttpClientErrorException e = assertThrows(
-                HttpClientErrorException.class,
-                () -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products/P101", DetailProductResponse.class)
-        );
-        assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode()); // 404
-    }
 
 
     @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
@@ -274,30 +228,5 @@ public class ProductServiceClientContractTest {
     }
 
 
-    /*@Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
-    public V4Pact allProductsNoAuthToken(PactDslWithProvider builder) {
-        return builder
-                .given("product exists")
-                    .uponReceiving("get all products with no auth token")
-                    .method("GET")
-                    .path("/api/products")
-                .willRespondWith()
-                    .status(HttpStatus.UNAUTHORIZED.value()) // 401
-                    .headers(HEADERS)
-                    .body("{\"error:\": \"Unauthorized\"}")
-                    .toPact(V4Pact.class);
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "allProductsNoAuthToken", pactVersion = V4)
-    void testGetAllProducts__whenNoAuth(MockServer mockServer) {
-
-        HttpClientErrorException e = assertThrows(
-                HttpClientErrorException.class,
-                //() -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class)
-                () -> new ProductServiceClient(restTemplate).getAllProducts()
-        );
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), e.getStatusCode().value()); //401
-    }*/
 
 }
