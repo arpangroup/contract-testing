@@ -447,4 +447,4 @@ with Consumer "WebBrowserConsumer"
 ````
 Yay - green ✅!
 
-*Move on to [step 4](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-3---verify-the-provider)*
+*Move on to [step 4](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-4---consumer-updates-contract-for-missing-products)*
