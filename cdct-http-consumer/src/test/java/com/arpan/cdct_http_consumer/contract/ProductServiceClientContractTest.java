@@ -51,9 +51,9 @@ public class ProductServiceClientContractTest {
     static final String CONSUMER_NAME__WEB_BROWSER = "WebBrowserConsumer";
     static final String PROVIDER_NAME_PRODUCT_SERVICE = "ProductServiceProvider";
     static final Map<String, String> HEADERS = Map.of("Content-Type", "application/json");
-    private final String REGEX_BEARER_TOKEN = "Bearer (19|20)[a-zA-Z0-9]+";
+    private final String REGEX_BEARER_TOKEN = "Bearer [a-zA-Z0-9+/=]+";
     private final String REGEX_PRODUCT_ID = "^P\\d+$";
-    private final String SAMPLE_BEARER_TOKEN = "Bearer 20xA1vQ2k3y";
+    //private final String SAMPLE_BEARER_TOKEN = "Bearer 20xA1vQ2k3y";
 
     @BeforeEach
     public void setup(MockServer mockServer) {
@@ -65,44 +65,44 @@ public class ProductServiceClientContractTest {
     public V4Pact getAllProducts(PactDslWithProvider builder) {
         // Define the expected response body using PactDslJsonBody
         PactDslJsonBody jsonBody = new PactDslJsonBody()
-            .stringType("studentName", "John Doe")
-            .stringType("studentId", "S12345")
-            .integerType("age", 20);
+                .stringType("studentName", "John Doe")
+                .stringType("studentId", "S12345")
+                .integerType("age", 20);
 
         // Build the Pact interaction
         return builder
                 .given("products exists") // State
-                    .uponReceiving("get all products")
-                    .method("GET")
-                    .path("/api/products")
-                    //.matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
-                    //.headers("Accept", "application/json")
-                    //.headers(Map.of("Content-Type", "application/json"))
+                .uponReceiving("get all products")
+                .method("GET")
+                .path("/api/products")
+                .matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
+                //.headers("Accept", "application/json")
+                //.headers(Map.of("Content-Type", "application/json"))
                 .willRespondWith()
-                    .status(200)
-                    .headers(HEADERS)
-                    /*.body(new PactDslJsonBody() //PactDslJsonArray
-                        .minArrayLike("products", 1, 2)  // name="products" size=1, numberExamples=2
-                            .integerType("productId", "P101")
-                            .stringType("productName", "Product1")
-                            .numberType("price", 500)
-                            .closeObject()
-                        .closeArray()
-                    )*/
-                    /*.body(new PactDslJsonArray()
-                        .minArrayLike(2) // Ensures at least 2 objects in the array
-                            .stringMatcher("productId", "P101")
-                            .stringType("productName", "Product1")
-                            .numberType("price", 500)
-                        .closeArray()
-                    )*/
-                    .body(LambdaDsl.newJsonArrayMinLike(2, array ->
-                            array.object(object -> {
-                                    object.stringType("productId", "P101");
-                                    object.stringType("productName", "Product1");
-                                    object.numberType("price", 500);
-                            })
-                    ).build())
+                .status(200)
+                .headers(HEADERS)
+                /*.body(new PactDslJsonBody() //PactDslJsonArray
+                    .minArrayLike("products", 1, 2)  // name="products" size=1, numberExamples=2
+                        .integerType("productId", "P101")
+                        .stringType("productName", "Product1")
+                        .numberType("price", 500)
+                        .closeObject()
+                    .closeArray()
+                )*/
+                /*.body(new PactDslJsonArray()
+                    .minArrayLike(2) // Ensures at least 2 objects in the array
+                        .stringMatcher("productId", "P101")
+                        .stringType("productName", "Product1")
+                        .numberType("price", 500)
+                    .closeArray()
+                )*/
+                .body(LambdaDsl.newJsonArrayMinLike(2, array ->
+                        array.object(object -> {
+                            object.stringType("productId", "P101");
+                            object.stringType("productName", "Product1");
+                            object.numberType("price", 500);
+                        })
+                ).build())
                 .toPact(V4Pact.class);
     }
 
@@ -142,14 +142,14 @@ public class ProductServiceClientContractTest {
     public V4Pact noProductsExists(PactDslWithProvider builder) {
         return builder
                 .given("no product exists")
-                    .uponReceiving("get all products")
-                    .method("GET")
-                    .path("/api/products")
-                    //.matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
+                .uponReceiving("get all products")
+                .method("GET")
+                .path("/api/products")
+                .matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
                 .willRespondWith()
-                    .status(200)
-                    .headers(HEADERS)
-                    .body("[]")
+                .status(200)
+                .headers(HEADERS)
+                .body("[]")
                 .toPact(V4Pact.class);
     }
 
@@ -167,13 +167,13 @@ public class ProductServiceClientContractTest {
         return builder
                 .given("product with ID P101 exists", "id", "P101")
                 .uponReceiving("get product with ID P101")
-                    .method("GET")
-                    .path("/api/products/P101")
-                    //.matchHeader("Authorization", SAMPLE_BEARER_TOKEN)
+                .method("GET")
+                .path("/api/products/P101")
+                .matchHeader("Authorization", REGEX_BEARER_TOKEN)
                 .willRespondWith()
-                    .status(200)
-                    .headers(HEADERS)
-                    .body(
+                .status(200)
+                .headers(HEADERS)
+                .body(
                         new PactDslJsonBody()
                                 .stringMatcher("productId", REGEX_PRODUCT_ID, "P101") // Regex ensures it starts with 'P' followed by digits
                                 .stringType("productName", "Product1")
@@ -182,7 +182,7 @@ public class ProductServiceClientContractTest {
                                 .stringMatcher("version", "\\d+\\.\\d", "1.0") // Numeric decimal with up to 1 digit after the decimal point
                                 .stringMatcher("createdAt", "\\d{2}-\\d{2}-\\d{4}", "01-01-2025") // Ensures 'dd-MM-yyyy' format
                                 .booleanType("active", true)
-                    )
+                )
                 .toPact(V4Pact.class);
     }
 
@@ -204,12 +204,12 @@ public class ProductServiceClientContractTest {
     public V4Pact productDetailsNotExist(PactDslWithProvider builder) {
         return builder
                 .given("product with ID P101 does not exists", "id", "P101")
-                    .uponReceiving("get product with ID P101")
-                    .method("GET")
-                    .path("/api/products/P101")
-                    //.matchHeader("Authorization", SAMPLE_BEARER_TOKEN)
+                .uponReceiving("get product with ID P101")
+                .method("GET")
+                .path("/api/products/P101")
+                .matchHeader("Authorization", REGEX_BEARER_TOKEN)
                 .willRespondWith()
-                    .status(HttpStatus.NOT_FOUND.value()) // 404
+                .status(HttpStatus.NOT_FOUND.value()) // 404
                 .toPact(V4Pact.class);
     }
 
@@ -218,7 +218,7 @@ public class ProductServiceClientContractTest {
     void testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer mockServer) {
         HttpClientErrorException e = assertThrows(
                 HttpClientErrorException.class,
-                () -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products/P101", DetailProductResponse.class)
+                () -> new ProductServiceClient(restTemplate).getProductById("P101")
         );
         assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode()); // 404
     }
@@ -228,22 +228,22 @@ public class ProductServiceClientContractTest {
         return builder
                 .given("create new product")
                 .uponReceiving("create new product with productName and price")
-                    .method("POST")
-                    .path("/api/products")
-                    //.matchHeader("Authorization", "Bearer 20xA1vQ2k3y")
-                    .matchHeader("Content-Type", "application/json")
-                    .body(new PactDslJsonBody()
-                            .stringType("productName", "Product1")
-                            .numberType("price", 500)
-                    )
+                .method("POST")
+                .path("/api/products")
+                .matchHeader("Authorization", REGEX_BEARER_TOKEN)
+                .matchHeader("Content-Type", "application/json")
+                .body(new PactDslJsonBody()
+                        .stringType("productName", "Product1")
+                        .numberType("price", 500)
+                )
                 .willRespondWith()
-                    .status(201) // HttpStatus.CREATED.value()
-                    .headers(Map.of("Content-Type", "application/json"))
-                    .body(new PactDslJsonBody()
+                .status(201) // HttpStatus.CREATED.value()
+                .headers(Map.of("Content-Type", "application/json"))
+                .body(new PactDslJsonBody()
                         .stringMatcher("productId", REGEX_PRODUCT_ID, "P12345") // Any productId starting with 'P'
                         .stringType("productName", "Product1")
                         .numberType("price", 500)
-                    )
+                )
                 .toPact(V4Pact.class);
     }
 
@@ -273,18 +273,18 @@ public class ProductServiceClientContractTest {
     }
 
 
-    /*@Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
     public V4Pact allProductsNoAuthToken(PactDslWithProvider builder) {
         return builder
                 .given("product exists")
-                    .uponReceiving("get all products with no auth token")
-                    .method("GET")
-                    .path("/api/products")
+                .uponReceiving("get all products with no auth token")
+                .method("GET")
+                .path("/api/products")
                 .willRespondWith()
-                    .status(HttpStatus.UNAUTHORIZED.value()) // 401
-                    .headers(HEADERS)
-                    .body("{\"error:\": \"Unauthorized\"}")
-                    .toPact(V4Pact.class);
+                .status(HttpStatus.UNAUTHORIZED.value()) // 401
+                .headers(HEADERS)
+                .body("{\"error:\": \"Unauthorized\"}")
+                .toPact(V4Pact.class);
     }
 
     @Test
@@ -293,10 +293,9 @@ public class ProductServiceClientContractTest {
 
         HttpClientErrorException e = assertThrows(
                 HttpClientErrorException.class,
-                //() -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class)
                 () -> new ProductServiceClient(restTemplate).getAllProducts()
         );
         assertEquals(HttpStatus.UNAUTHORIZED.value(), e.getStatusCode().value()); //401
-    }*/
+    }
 
 }
