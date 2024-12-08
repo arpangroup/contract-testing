@@ -51,9 +51,9 @@ public class ProductServiceClientContractTest {
     static final String CONSUMER_NAME__WEB_BROWSER = "WebBrowserConsumer";
     static final String PROVIDER_NAME_PRODUCT_SERVICE = "ProductServiceProvider";
     static final Map<String, String> HEADERS = Map.of("Content-Type", "application/json");
-    private final String REGEX_BEARER_TOKEN = "Bearer (19|20)[a-zA-Z0-9]+";
+    private final String REGEX_BEARER_TOKEN = "Bearer [a-zA-Z0-9+/=]+";
     private final String REGEX_PRODUCT_ID = "^P\\d+$";
-    private final String SAMPLE_BEARER_TOKEN = "Bearer 20xA1vQ2k3y";
+    //private final String SAMPLE_BEARER_TOKEN = "Bearer 20xA1vQ2k3y";
 
     @BeforeEach
     public void setup(MockServer mockServer) {
@@ -75,7 +75,7 @@ public class ProductServiceClientContractTest {
                     .uponReceiving("get all products")
                     .method("GET")
                     .path("/api/products")
-                    //.matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
+                    .matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
                     //.headers("Accept", "application/json")
                     //.headers(Map.of("Content-Type", "application/json"))
                 .willRespondWith()
@@ -145,7 +145,7 @@ public class ProductServiceClientContractTest {
                     .uponReceiving("get all products")
                     .method("GET")
                     .path("/api/products")
-                    //.matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
+                    .matchHeader("Authorization", REGEX_BEARER_TOKEN) // Regex to match "Bearer 19" or "20" followed by alphanumeric characters
                 .willRespondWith()
                     .status(200)
                     .headers(HEADERS)
@@ -169,7 +169,7 @@ public class ProductServiceClientContractTest {
                 .uponReceiving("get product with ID P101")
                     .method("GET")
                     .path("/api/products/P101")
-                    //.matchHeader("Authorization", SAMPLE_BEARER_TOKEN)
+                    .matchHeader("Authorization", REGEX_BEARER_TOKEN)
                 .willRespondWith()
                     .status(200)
                     .headers(HEADERS)
@@ -207,7 +207,7 @@ public class ProductServiceClientContractTest {
                     .uponReceiving("get product with ID P101")
                     .method("GET")
                     .path("/api/products/P101")
-                    //.matchHeader("Authorization", SAMPLE_BEARER_TOKEN)
+                    .matchHeader("Authorization", REGEX_BEARER_TOKEN)
                 .willRespondWith()
                     .status(HttpStatus.NOT_FOUND.value()) // 404
                 .toPact(V4Pact.class);
@@ -218,7 +218,7 @@ public class ProductServiceClientContractTest {
     void testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer mockServer) {
         HttpClientErrorException e = assertThrows(
                 HttpClientErrorException.class,
-                () -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products/P101", DetailProductResponse.class)
+                () -> new ProductServiceClient(restTemplate).getProductById("P101")
         );
         assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode()); // 404
     }
@@ -230,7 +230,7 @@ public class ProductServiceClientContractTest {
                 .uponReceiving("create new product with productName and price")
                     .method("POST")
                     .path("/api/products")
-                    //.matchHeader("Authorization", "Bearer 20xA1vQ2k3y")
+                    .matchHeader("Authorization", REGEX_BEARER_TOKEN)
                     .matchHeader("Content-Type", "application/json")
                     .body(new PactDslJsonBody()
                             .stringType("productName", "Product1")
@@ -273,7 +273,7 @@ public class ProductServiceClientContractTest {
     }
 
 
-    /*@Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
+    @Pact(consumer = CONSUMER_NAME__WEB_BROWSER)
     public V4Pact allProductsNoAuthToken(PactDslWithProvider builder) {
         return builder
                 .given("product exists")
@@ -293,10 +293,9 @@ public class ProductServiceClientContractTest {
 
         HttpClientErrorException e = assertThrows(
                 HttpClientErrorException.class,
-                //() -> new RestTemplate().getForEntity(mockServer.getUrl() + "/api/products", SimpleProductResponse[].class)
                 () -> new ProductServiceClient(restTemplate).getAllProducts()
         );
         assertEquals(HttpStatus.UNAUTHORIZED.value(), e.getStatusCode().value()); //401
-    }*/
+    }
 
 }
