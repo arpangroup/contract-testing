@@ -852,7 +852,6 @@ cdct-http-provider ❯ ./mvnw verify
 
 <<< Omitted >>>
 
-[INFO]
 [INFO] Results:
 [INFO] 
 [ERROR] Failures: 
@@ -868,6 +867,11 @@ Failures:
     1.1) status: expected status of 200 but was 401
     1.2) header: Expected a header 'Content-Type' but was missing
     1.3) body-content-type: Expected a body of 'application/json' but the actual content type was 'null'
+[ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon get all products with no auth token 
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get all products with no auth token includes headers "Content-Type" with value "[application/json]"
+    1.1) header: Expected a header 'Content-Type' but was missing
+    1.2) body-content-type: Expected a body of 'application/json' but the actual content type was 'null'
 [ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon get product with ID P101 
 Failures:
 1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get product with ID P101: has status code 404
@@ -885,9 +889,8 @@ Failures:
     1.2) header: Expected a header 'Content-Type' but was missing
     1.3) body-content-type: Expected a body of 'application/json' but the actual content type was 'null'
 [INFO] 
-[ERROR] Tests run: 6, Failures: 5, Errors: 0, Skipped: 0
+[ERROR] Tests run: 7, Failures: 6, Errors: 0, Skipped: 0
 [INFO] 
-
 ````
 Oh, dear. More tests are failing. Can you understand why?
 
