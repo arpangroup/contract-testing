@@ -21,7 +21,7 @@
       "request": {
         "headers": {
           "Authorization": [
-            "Bearer X0we"
+            "Bearer AAABd9yHUjI="
           ]
         },
         "matchingRules": {
@@ -31,7 +31,7 @@
               "matchers": [
                 {
                   "match": "regex",
-                  "regex": "Bearer [a-zA-Z0-9+/=]+"
+                  "regex": "Bearer [a-zA-Z0-9=\\+/]+"
                 }
               ]
             }

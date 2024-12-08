@@ -67,7 +67,7 @@ public class ProductServiceProviderContractTest {
         ));
     }
 
-    /*@State(value = "no product exists", action = StateChangeAction.SETUP)
+    @State(value = "no product exists", action = StateChangeAction.SETUP)
     void noProductsExist() {
         productRepository.deleteAll();
     }
@@ -88,7 +88,7 @@ public class ProductServiceProviderContractTest {
         if (product.isPresent()) {
             productRepository.deleteById(productId);
         }
-    }*/
+    }
 
     private static String generateToken() {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
