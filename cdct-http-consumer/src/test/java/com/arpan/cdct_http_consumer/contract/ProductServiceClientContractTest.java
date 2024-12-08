@@ -53,7 +53,6 @@ public class ProductServiceClientContractTest {
     static final Map<String, String> HEADERS = Map.of("Content-Type", "application/json");
     private final String REGEX_BEARER_TOKEN = "Bearer [a-zA-Z0-9+/=]+";
     private final String REGEX_PRODUCT_ID = "^P\\d+$";
-    //private final String SAMPLE_BEARER_TOKEN = "Bearer 20xA1vQ2k3y";
 
     @BeforeEach
     public void setup(MockServer mockServer) {
