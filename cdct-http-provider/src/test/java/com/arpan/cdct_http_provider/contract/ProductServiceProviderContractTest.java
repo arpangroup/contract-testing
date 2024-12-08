@@ -11,6 +11,7 @@ import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import com.arpan.cdct_http_provider.model.Product;
 import com.arpan.cdct_http_provider.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.core5.http.HttpRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,10 +20,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 import static com.arpan.cdct_http_provider.contract.ProductServiceProviderContractTest.PROVIDER_NAME_PRODUCT_SERVICE;
 
@@ -48,7 +47,11 @@ public class ProductServiceProviderContractTest {
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
-    void pactVerificationTestTemplate(PactVerificationContext context) {
+    void pactVerificationTestTemplate(PactVerificationContext context, HttpRequest request) {
+        // WARNING: Do not modify anything else on the request, because you could invalidate the contract
+        if (request.containsHeader("Authorization")) {
+            request.setHeader("Authorization", "Bearer " + generateToken());
+        }
         context.verifyInteraction();
     }
 
@@ -85,5 +88,11 @@ public class ProductServiceProviderContractTest {
         if (product.isPresent()) {
             productRepository.deleteById(productId);
         }
+    }
+
+    private static String generateToken() {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(System.currentTimeMillis());
+        return Base64.getEncoder().encodeToString(buffer.array());
     }
 }

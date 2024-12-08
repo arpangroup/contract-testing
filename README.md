@@ -852,10 +852,74 @@ cdct-http-provider ❯ ./mvnw verify
 
 <<< Omitted >>>
 
+[INFO]
+[INFO] Results:
 [INFO] 
+[ERROR] Failures: 
+[ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon create new product with productName and price 
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - create new product with productName and price: has status code 201
+    1.1) status: expected status of 201 but was 401
+    1.2) header: Expected a header 'Content-Type' but was missing
+    1.3) body-content-type: Expected a body of 'application/json' but the actual content type was 'null'
+[ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon get all products 
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get all products: has status code 200
+    1.1) status: expected status of 200 but was 401
+    1.2) header: Expected a header 'Content-Type' but was missing
+    1.3) body-content-type: Expected a body of 'application/json' but the actual content type was 'null'
+[ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon get product with ID P101 
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get product with ID P101: has status code 404
+    1.1) status: expected status of 404 but was 401
+[ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon get product with ID P101 
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get product with ID P101: has status code 200
+    1.1) status: expected status of 200 but was 401
+    1.2) header: Expected a header 'Content-Type' but was missing
+    1.3) body-content-type: Expected a body of 'application/json' but the actual content type was 'null'
+[ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon get all products 
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get all products: has status code 200
+    1.1) status: expected status of 200 but was 401
+    1.2) header: Expected a header 'Content-Type' but was missing
+    1.3) body-content-type: Expected a body of 'application/json' but the actual content type was 'null'
+[INFO] 
+[ERROR] Tests run: 6, Failures: 5, Errors: 0, Skipped: 0
+[INFO] 
+
 ````
 Oh, dear. More tests are failing. Can you understand why?
 
 *Move on to [step 8](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
 
 ## Step 8 - Request Filters on the Provider
+Because our pact file has static data in it, our bearer token is now out of date, so when Pact verification passes it to the Provider we get a `401`. There are multiple ways to resolve this - mocking or stubbing out the authentication component is a common one. In our use case, we are going to use a process referred to as Request Filtering, by modifying the request that gets sent.
+
+NOTE: This is an advanced concept and should be used carefully, as it has the potential to invalidate a contract by bypassing its constraints. See https://github.com/pact-foundation/pact-jvm/blob/master/provider/junit5/README.md#modifying-the-requests-before-they-are-sent for more details on this.
+
+The approach we are going to take to inject the header is as follows:
+1. If we receive any Authorization header, we override the incoming request with a valid (in time) Authorization header, and continue with whatever call was being made
+2. If we don't receive an Authorization header, we do nothing
+
+**NOTE:** We are not considering the 403 scenario in this example.
+
+In `cdct-http-provider/src/test/java/com/arpan/cdct_http_provider/contract/ProductServiceProviderContractTest.java`:
+
+````java
+  @TestTemplate
+  @ExtendWith(PactVerificationInvocationContextProvider.class)
+  void pactVerificationTestTemplate(PactVerificationContext context, HttpRequest request) {
+    // WARNING: Do not modify anything else on the request, because you could invalidate the contract
+    if (request.containsHeader("Authorization")) {
+      request.setHeader("Authorization", "Bearer " + generateToken());
+    }
+    context.verifyInteraction();
+  }
+
+  private static String generateToken() {
+    ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+    buffer.putLong(System.currentTimeMillis());
+    return Base64.getEncoder().encodeToString(buffer.array());
+  }
+````
