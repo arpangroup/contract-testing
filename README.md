@@ -628,5 +628,63 @@ Let's open up our provider Pact verification test in
 `cdct-http-provider/src/test/java/com/arpan/cdct_http_provider/contract/ProductServiceProviderContractTest.java`:
 
 ````java
+@State(value = "products exists", action = StateChangeAction.SETUP)
+void productsExists() {
+    log.info("Executing state: products exists");
+    productRepository.deleteAll();
+    productRepository.saveAll(Arrays.asList(
+            new Product("P101", "Product1", 500, null, null, false),
+            new Product("P201", "Product2", 600, null, null, false),
+            new Product("P301", "Product3", 700, null, null, false),
+            new Product("P401", "Product4", 800, null, null, false)
+    ));
+}
 
+@State(value = "no product exists", action = StateChangeAction.SETUP)
+void noProductsExist() {
+    productRepository.deleteAll();
+}
+
+@State(value = "product with ID P101 exists", action = StateChangeAction.SETUP)
+void productExists(Map<String, Object> params) {
+    String productId = (String) params.get("id");
+    Optional<Product> product = productRepository.findById(productId);
+    if (product.isEmpty()) {
+        productRepository.save(new Product(productId, "Product", 500, null, null, false));
+    }
+}
+
+@State(value = "product with ID P101 does not exists", action = StateChangeAction.SETUP)
+void productNotExist(Map<String, Object> params) {
+    String productId = (String) params.get("id");
+    Optional<Product> product = productRepository.findById(productId);
+    if (product.isPresent()) {
+        productRepository.deleteById(productId);
+    }
+}
 ````
+Let's see how we go now:
+````console
+cdct-http-provider ❯ ./mvnw verify
+
+<<< Omitted >>>
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ cdct-http-provider ---
+[INFO] Building jar: D:\java-projects\contract-testing\cdct-http-provider\target\cdct-http-provider-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.4.0:repackage (repackage) @ cdct-http-provider ---
+[INFO] Replacing main artifact D:\java-projects\contract-testing\cdct-http-provider\target\cdct-http-provider-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to D:\java-projects\contract-testing\cdct-http-provider\target\cdct-http-provider-0.0.1-SNAPSHOT.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+````
+**NOTE:** The states are not necessarily a 1 to 1 mapping with the consumer contract tests. You can reuse states amongst different tests. In this scenario we could have used `no products exist` for both tests which would have equally been valid.
+
+*Move on to [step 6](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
