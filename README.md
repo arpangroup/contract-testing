@@ -607,7 +607,7 @@ We expected this failure, because the product we are requesting does in fact exi
 
 We could resolve this by updating our consumer test to use a known non-existent product, but it's worth understanding how Provider states work more generally.
 
-*Move on to [step 5](https://github.com/arpangroup/contract-testing/tree/cdct-step4?tab=readme-ov-file#step-4---consumer-updates-contract-for-missing-products)*
+*Move on to [step 5](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
 
 ## Step 5 - Adding the missing states
 We need to update our provider code to deal with missing products and send a 404 response. However, our test data fixture also has product ID P101 in our database.
