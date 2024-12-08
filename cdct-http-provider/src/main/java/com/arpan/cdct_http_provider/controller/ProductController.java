@@ -10,6 +10,7 @@ import com.arpan.cdct_http_provider.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,9 @@ public class ProductController {
     @GetMapping()
     public ResponseEntity<List<SimpleProductResponse>> getAllProducts() {
        List<SimpleProductResponse> products = repository.findAll().stream().map(mapper::mapTo).toList();
-       return ResponseEntity.ok(products);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(products);
     }
 
     @GetMapping("/{productId}")
