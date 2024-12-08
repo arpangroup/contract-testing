@@ -789,9 +789,23 @@ cdct-http-provider ❯ ./mvnw verify
 
 <<< Omitted >>>
 
+[ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.639 s <<< FAILURE! -- in com.arpan.cdct_http_provider.contract.ProductServiceProviderContractTest
+[ERROR] com.arpan.cdct_http_provider.contract.ProductServiceProviderContractTest.pactVerificationTestTemplate(PactVerificationContext)[3] -- Time elapsed: 0.028 s <<< FAILURE!
+java.lang.AssertionError: 
+WebBrowserConsumer - Upon get all products with no auth token 
+Failures:
+1) Verifying a pact between WebBrowserConsumer and ProductServiceProvider - get all products with no auth token: has status code 401
+    1.1) status: expected status of 401 but was 200
+    1.2) body: $ Type mismatch: Expected [] (Array) to be the same type as {"error:":"Unauthorized"} (Object)
+        -{
+        -  "error:": "Unauthorized"
+        -}
+        +[
+        +
+        +]
+[ERROR] Failures: 
+[ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon get all products with no auth token 
 ````
 Now with the most recently added interactions where we are expecting a response of 401, but the provider is not handling any authentication, so we are getting 200...
 
 *Move on to [step 7](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
-
-## Step 7 - Implement authorisation on the provider

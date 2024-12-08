@@ -28,6 +28,9 @@
           "encoded": false
         },
         "headers": {
+          "Authorization": [
+            "Bearer yQ5"
+          ],
           "Content-Type": [
             "application/json"
           ]
@@ -52,6 +55,15 @@
             }
           },
           "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "Bearer [a-zA-Z0-9+/=]+"
+                }
+              ]
+            },
             "Content-Type": {
               "combine": "AND",
               "matchers": [
@@ -131,6 +143,24 @@
         }
       ],
       "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer +"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "Bearer [a-zA-Z0-9+/=]+"
+                }
+              ]
+            }
+          }
+        },
         "method": "GET",
         "path": "/api/products"
       },
@@ -154,6 +184,43 @@
     },
     {
       "comments": {
+        "testname": "com.arpan.cdct_http_consumer.contract.ProductServiceClientContractTest.testGetAllProducts__whenNoAuth(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "get all products with no auth token",
+      "key": "2dd9d56",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "product exists"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/products"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error:": "Unauthorized"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 401
+      },
+      "transport": "https",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
         "testname": "com.arpan.cdct_http_consumer.contract.ProductServiceClientContractTest.testGetProductDetailsById__whenProductWithId_P101_NotExists(MockServer)",
         "text": [
 
@@ -171,6 +238,24 @@
         }
       ],
       "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer D+5Q"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "Bearer [a-zA-Z0-9+/=]+"
+                }
+              ]
+            }
+          }
+        },
         "method": "GET",
         "path": "/api/products/P101"
       },
@@ -199,6 +284,24 @@
         }
       ],
       "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer b"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "Bearer [a-zA-Z0-9+/=]+"
+                }
+              ]
+            }
+          }
+        },
         "method": "GET",
         "path": "/api/products/P101"
       },
@@ -306,6 +409,24 @@
         }
       ],
       "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer B"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "Bearer [a-zA-Z0-9+/=]+"
+                }
+              ]
+            }
+          }
+        },
         "method": "GET",
         "path": "/api/products"
       },
