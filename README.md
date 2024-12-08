@@ -292,5 +292,5 @@ A pact file should have been generated in `cdct-http-consumer/target/pacts/WebBr
 
 [View the generated WebBrowserConsumer-ProductServiceProvider.json](diagrams/WebBrowserConsumer-ProductServiceProvider.json)
 
-*Move on to [step 3](https://github.com/pact-foundation/pact-workshop-Maven-Springboot-JUnit5/tree/step2#step-2---client-tested-but-integration-fails)*
+*Move on to [step 3](https://github.com/arpangroup/contract-testing/tree/cdct-step3?tab=readme-ov-file#step-3---verify-the-provider)*
 
