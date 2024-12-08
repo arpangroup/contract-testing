@@ -777,7 +777,6 @@ void testGetAllProducts__whenNoAuth(MockServer mockServer) {
     assertEquals(HttpStatus.UNAUTHORIZED.value(), e.getStatusCode().value()); //401
 }
 ````
-to all the interactions and two new interactions:
 
 Then re-run the Pact test to generate a new Pact file.
 
@@ -807,7 +806,6 @@ Failures:
 [ERROR] Failures: 
 [ERROR]   ProductServiceProviderContractTest.pactVerificationTestTemplate:52 WebBrowserConsumer - Upon get all products with no auth token 
 ````
-
 Now with the most recently added interactions where we are expecting a response of 401, but the provider is not handling any authentication, so we are getting 200...
 
 *Move on to [step 7](https://github.com/arpangroup/contract-testing/tree/cdct-step5?tab=readme-ov-file#step-5---adding-the-missing-states)*
