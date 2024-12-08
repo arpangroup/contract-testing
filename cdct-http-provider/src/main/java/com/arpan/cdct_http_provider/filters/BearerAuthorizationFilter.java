@@ -35,6 +35,11 @@ public class BearerAuthorizationFilter extends OncePerRequestFilter {
         } else {
             log.error("Bearer Token Not Valid: {}", header);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+
+            // Write JSON response
+            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+            response.getWriter().flush();
         }
     }
 

@@ -277,13 +277,13 @@ public class ProductServiceClientContractTest {
     public V4Pact allProductsNoAuthToken(PactDslWithProvider builder) {
         return builder
                 .given("product exists")
-                .uponReceiving("get all products with no auth token")
-                .method("GET")
-                .path("/api/products")
+                    .uponReceiving("get all products with no auth token")
+                    .method("GET")
+                    .path("/api/products")
                 .willRespondWith()
-                .status(HttpStatus.UNAUTHORIZED.value()) // 401
-                .headers(HEADERS)
-                .body("{\"error:\": \"Unauthorized\"}")
+                    .status(HttpStatus.UNAUTHORIZED.value()) // 401
+                    .headers(HEADERS)
+                    .body("{\"error\": \"Unauthorized\"}")
                 .toPact(V4Pact.class);
     }
 
