@@ -35,7 +35,6 @@ import static com.arpan.cdct_http_provider.contract.ProductServiceProviderContra
 @PactBroker(url = "${pactbroker.url}", authentication = @PactBrokerAuth(username = "${pactbroker.auth.username}", password = "${pactbroker.auth.password}"))
 //@PactFolder("src/test/resources/pacts")
 @IgnoreMissingStateChange
-@ActiveProfiles("test")
 @Slf4j
 public class ProductServiceProviderContractTest {
     static final String CONSUMER_NAME__WEB_BROWSER = "WebBrowserConsumer";
